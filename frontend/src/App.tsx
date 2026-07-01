@@ -4,6 +4,7 @@ import { AlertBanner } from "./components/AlertBanner";
 import { ForecastTable } from "./components/ForecastTable";
 import { FloodMap } from "./components/FloodMap";
 import { SimulationSlider } from "./components/SimulationSlider";
+import { ActionPanel } from "./components/ActionPanel";
 
 function App() {
   // Lives here, not inside FloodMap or SimulationSlider, because both
@@ -15,6 +16,7 @@ function App() {
       <h1>FloodAI — Upper Sonoita Creek</h1>
       <AlertBanner />
       <FloodMap overlayUrl={overlayUrl} />
+      <ActionPanel />
       <SimulationSlider onChange={(_T, url) => setOverlayUrl(url)} />
       <ForecastTable />
     </div>

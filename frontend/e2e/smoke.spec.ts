@@ -19,6 +19,10 @@ test("full page loads with live data from the backend", async ({ page }) => {
   // Simulation slider defaults to the 100-yr scenario
   await expect(page.getByText(/100-year storm/)).toBeVisible({ timeout: 10_000 });
 
+  // Action plan: real named roads/buildings, not placeholders
+  await expect(page.getByText(/Roads to barricade/)).toBeVisible({ timeout: 10_000 });
+  await expect(page.getByText(/28-910/)).toBeVisible();
+
   // Forecast table has at least one real date row
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(7);

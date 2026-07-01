@@ -62,6 +62,18 @@ export interface SimulationScenariosResponse {
   scenarios: Record<string, SimulationScenario>;
 }
 
+export interface ActionItem {
+  name: string;
+  max_depth_m: number;
+}
+
+export interface ActionPlan {
+  reference_scenario: string;
+  roads_to_barricade: { total_count: number; top: ActionItem[] };
+  buildings_to_evacuate: { total_count: number; top: ActionItem[] };
+  legal_note: string;
+}
+
 export interface MapConfig {
   bbox: { north: number; south: number; east: number; west: number };
   center: { lat: number; lon: number };

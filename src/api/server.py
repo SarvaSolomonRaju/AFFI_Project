@@ -20,6 +20,7 @@ for p in [str(ROOT), str(ROOT / "src")]:
 
 from src.api.auth import validate_api_key, require_role
 from src.api.routes_map import router as map_router
+from src.api.routes_action import router as action_router
 from common.logging_setup import configure_logging, get_logger
 
 configure_logging(level="INFO", to_file=True, log_dir=ROOT / "outputs" / "logs")
@@ -55,6 +56,7 @@ app.add_middleware(
 )
 
 app.include_router(map_router)
+app.include_router(action_router)
 
 
 class HealthResponse(BaseModel):
