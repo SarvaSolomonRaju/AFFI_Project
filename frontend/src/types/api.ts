@@ -67,10 +67,23 @@ export interface ActionItem {
   max_depth_m: number;
 }
 
+export type BuildingCategory =
+  | "School"
+  | "Public/Civic"
+  | "Residential"
+  | "Commercial/Industrial"
+  | "Agricultural/Outbuilding"
+  | "Unclassified";
+
+export interface BuildingActionItem extends ActionItem {
+  category: BuildingCategory;
+}
+
 export interface ActionPlan {
   reference_scenario: string;
   roads_to_barricade: { total_count: number; top: ActionItem[] };
-  buildings_to_evacuate: { total_count: number; top: ActionItem[] };
+  buildings_to_evacuate: { total_count: number; top: BuildingActionItem[] };
+  schools_in_flood_zone: ActionItem[];
   legal_note: string;
 }
 

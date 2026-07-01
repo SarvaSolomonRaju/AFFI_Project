@@ -22,6 +22,7 @@ for p in [str(ROOT), str(ROOT / "src")]:
         sys.path.insert(0, p)
 
 from src.api.auth import validate_api_key
+from common.building_categories import categorize_building
 
 DATA_DIR = ROOT / "data"
 
@@ -92,6 +93,7 @@ def build_action_plan() -> dict:
             {
                 "name": _building_name(f["properties"]),
                 "max_depth_m": round(f["properties"].get("max_depth_m", 0.0), 2),
+                "category": categorize_building(f["properties"].get("building")),
             }
             for f in buildings.get("features", [])
             if f["properties"].get("status") == "FLOODED"
@@ -99,6 +101,14 @@ def build_action_plan() -> dict:
         key=lambda b: b["max_depth_m"],
         reverse=True,
     )
+
+    # Schools called out separately, not just left buried wherever they
+    # land in the depth-sorted list — a school with any water at all is
+    # a higher evacuation priority than a deeper-flooded shed, but this
+    # doesn't silently re-sort the main list (which stays depth-ranked,
+    # already tested that way) — it adds a dedicated, always-complete
+    # (not capped to 20) callout instead.
+    schools_in_flood_zone = [b for b in flooded_buildings if b["category"] == "School"]
 
     return {
         "reference_scenario": "FEMA 1% annual chance (100-yr) flood",
@@ -110,6 +120,7 @@ def build_action_plan() -> dict:
             "total_count": len(flooded_buildings),
             "top": flooded_buildings[:20],
         },
+        "schools_in_flood_zone": schools_in_flood_zone,
         "legal_note": LEGAL_NOTE,
     }
 

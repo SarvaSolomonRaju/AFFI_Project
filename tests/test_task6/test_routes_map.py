@@ -64,6 +64,20 @@ class TestMapLayers:
         resp = client.get("/api/v1/map/layers/not-a-real-layer")
         assert resp.status_code == 404
 
+    def test_buildings_layer_has_category_injected(self):
+        data = client.get("/api/v1/map/layers/buildings").json()
+        categories = {f["properties"]["category"] for f in data["features"]}
+        assert "School" in categories
+        assert "Unclassified" in categories
+        # Every building got a category — none silently skipped.
+        assert all("category" in f["properties"] for f in data["features"])
+
+    def test_other_layers_not_mutated_with_category(self):
+        # Only buildings gets the transform — roads/zones/etc. stay a
+        # raw passthrough, no unexpected extra property.
+        data = client.get("/api/v1/map/layers/roads").json()
+        assert "category" not in data["features"][0]["properties"]
+
 
 class TestMapRasters:
     @pytest.mark.parametrize("layer", ["fema-100yr", "today-likely", "today-poi"])

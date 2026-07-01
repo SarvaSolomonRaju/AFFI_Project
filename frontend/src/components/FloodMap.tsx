@@ -146,15 +146,26 @@ export function FloodMap({ overlayUrl, isSimulation }: FloodMapProps) {
         {buildings && (
           <Source id="buildings" type="geojson" data={buildings}>
             {/* fill-extrusion is what gives buildings height/3D. We don't
-                have real building-height data (see note below), so every
-                building gets the same fixed height — the color is what
-                carries the real signal (flooded vs safe). */}
+                have real building-height data, so every building gets a
+                fixed height — except schools, which get extra height so
+                they read as landmarks regardless of flood status: a
+                school is always worth spotting on the map, flooded or
+                not, per the category work in routes_map.py. Color:
+                School is always purple (category overrides flood
+                status, which is the whole point — you shouldn't have to
+                hunt for it); everything else falls back to
+                flooded=red/safe=gray. */}
             <Layer
               id="buildings-3d"
               type="fill-extrusion"
               paint={{
-                "fill-extrusion-color": ["match", ["get", "status"], "FLOODED", "#e53935", "#78909c"],
-                "fill-extrusion-height": 8,
+                "fill-extrusion-color": [
+                  "match",
+                  ["get", "category"],
+                  "School", "#9b59b6",
+                  ["match", ["get", "status"], "FLOODED", "#e53935", "#78909c"],
+                ],
+                "fill-extrusion-height": ["match", ["get", "category"], "School", 18, 8],
                 "fill-extrusion-opacity": 0.85,
               }}
             />

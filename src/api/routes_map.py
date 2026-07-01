@@ -8,11 +8,12 @@ what's already there, behind the existing API-key auth.
 """
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 
 ROOT = Path(__file__).resolve().parents[2]
 for p in [str(ROOT), str(ROOT / "src")]:
@@ -20,6 +21,7 @@ for p in [str(ROOT), str(ROOT / "src")]:
         sys.path.insert(0, p)
 
 from src.api.auth import validate_api_key
+from common.building_categories import categorize_building
 
 DATA_DIR = ROOT / "data"
 OUTPUTS_DIR = ROOT / "outputs"
@@ -96,6 +98,21 @@ async def get_map_layer(layer: str, user: dict = Depends(validate_api_key)):
         raise HTTPException(status_code=404, detail=f"Unknown map layer: {layer}")
     if not path.exists():
         raise HTTPException(status_code=404, detail=f"Layer file not found on disk: {path.name}")
+
+    if layer == "buildings":
+        # Only this layer gets a transform — everything else is a raw
+        # passthrough (see module docstring). The raw OSM `building` tag
+        # (school, house, industrial, ...) is already on disk but was
+        # never grouped into anything a manager would scan at a glance;
+        # inject a `category` property rather than have the frontend
+        # duplicate this lookup in JS.
+        data = json.loads(path.read_text())
+        for feature in data.get("features", []):
+            feature["properties"]["category"] = categorize_building(
+                feature["properties"].get("building")
+            )
+        return JSONResponse(content=data, media_type="application/geo+json")
+
     return FileResponse(path, media_type="application/geo+json")
 
 

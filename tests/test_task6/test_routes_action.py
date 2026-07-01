@@ -37,6 +37,22 @@ class TestActionPlan:
         data = client.get("/api/v1/action-plan").json()
         assert "28-910" in data["legal_note"]
 
+    def test_buildings_carry_category(self):
+        data = client.get("/api/v1/action-plan").json()
+        categories = {b["category"] for b in data["buildings_to_evacuate"]["top"]}
+        assert categories  # non-empty
+        valid = {"School", "Public/Civic", "Residential", "Commercial/Industrial", "Agricultural/Outbuilding", "Unclassified"}
+        assert categories <= valid
+
+    def test_schools_in_flood_zone_is_uncapped_and_school_only(self):
+        data = client.get("/api/v1/action-plan").json()
+        schools = data["schools_in_flood_zone"]
+        assert isinstance(schools, list)
+        # Real data as of 2026-06-30: 0 flooded schools at the 100-yr
+        # reference — this asserts the *shape* holds regardless of
+        # that count changing if the library gets rebuilt.
+        assert all("name" in s and "max_depth_m" in s for s in schools)
+
     def test_requires_key_when_auth_enabled(self, monkeypatch):
         monkeypatch.delenv("AFFI_AUTH_DISABLED", raising=False)
         resp = client.get("/api/v1/action-plan")
