@@ -210,7 +210,14 @@ Expected: max ≈ 12.0 m (clamped), ~52 800 wet pixels (~5.28 km²) — matches 
 
 ## 8. Deployment
 
-**Docker:**
+**Docker (full stack — frontend + API + scheduler):**
+
+```bash
+make docker-up          # http://localhost:3000 (frontend), :8000/docs (API)
+make docker-down
+```
+
+**Docker (API container only):**
 
 ```bash
 make docker-build

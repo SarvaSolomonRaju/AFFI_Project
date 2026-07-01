@@ -10,8 +10,13 @@ services:
       - ./data:/app/data
     environment:
       - PYTHONPATH=/app
-      - AFFI_AUTH_DISABLED=false
+      # No login UI exists in frontend/ yet — there's nowhere for an
+      # operator to enter a per-user API key. Auth-disabled is the
+      # honest setting until that's built, not a security oversight.
+      # Flip to false + supply real keys once an auth UI exists.
+      - AFFI_AUTH_DISABLED=true
       - AFFI_API_KEYS_FILE=/app/config/api_keys.json
+      - AFFI_CORS_ORIGINS=http://localhost:3000
     command: uvicorn src.api.server:app --host 0.0.0.0 --port 8000 --workers 2
     restart: unless-stopped
     healthcheck:
@@ -20,20 +25,26 @@ services:
       timeout: 10s
       retries: 3
 
-  dashboard:
-    build: .
+  frontend:
+    build: ./frontend
     ports:
-      - "8501:8501"
-    volumes:
-      - ./outputs:/app/outputs
-      - ./models:/app/models
-      - ./config:/app/config
-    environment:
-      - PYTHONPATH=/app
-    command: streamlit run src/dashboard/eoc_dashboard.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+      - "3000:80"
     restart: unless-stopped
     depends_on:
       - api
+
+  # src/dashboard/eoc_dashboard.py (Streamlit) is superseded by
+  # frontend/ — same alert/forecast/model-performance data, now a real
+  # React app instead. Not deleted (still runnable manually via
+  # `streamlit run` if ever wanted), just no longer part of the default
+  # stack — running two live dashboards side by side served no purpose.
+  # dashboard:
+  #   build: .
+  #   ports:
+  #     - "8501:8501"
+  #   command: streamlit run src/dashboard/eoc_dashboard.py --server.port 8501 --server.address 0.0.0.0 --server.headless true
+  #   depends_on:
+  #     - api
 
   scheduler:
     build: .

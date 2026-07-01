@@ -65,11 +65,44 @@ uses. This is the same divergence noted in the archived
 not yet reconciled. `src/api/routes_bulletin.py` now prints whatever value
 is actually there rather than mislabeling it "HUC-12."
 
+**2026-06-30, dashboard content built out:** Decision Cockpit
+(time-to-peak/life-safety/uncertainty — whitepaper D4.2.c/d/f, computed
+but never surfaced before), historical event comparison
+(`data/historical_events/sonoita_events.json`, existed unused since
+early in the project), auto-refresh (60s polling + manual "Refresh
+now" — `frontend/src/hooks/useLiveData.ts`), and building categories
+(School/Public-Civic/Residential/Commercial-Industrial/Agricultural-
+Outbuilding — `src/common/building_categories.py`, a pure lookup over
+the OSM `building` tag already on disk, no new data acquisition).
+
+**2026-06-30, Docker wiring:** `frontend/Dockerfile` (multi-stage,
+nginx serves the build + reverse-proxies `/api` and `/health` to the
+`api` container — same-origin, no CORS needed in this path).
+`docker-compose.yml` `dashboard` (Streamlit) service commented out —
+superseded by `frontend/`, not deleted. `AFFI_AUTH_DISABLED=true` in
+compose is intentional, not an oversight: `frontend/` has no login UI
+yet, so there's nowhere to enter a per-operator API key — flip once
+that exists. **Not verified end-to-end** — no `docker` CLI available
+in this environment; verified the build output itself (`npm run
+build` + served + confirmed real data renders) but not the actual
+`docker compose up` cycle. Run `make docker-up` yourself to confirm
+before relying on it.
+
+Real bug found and fixed while building this: `npm run build` (the
+actual production build, via `tsc -b`) failed on a missing `GeoJSON`
+type that `npx tsc --noEmit` (what had been used for typechecking all
+session) never caught — the bare command was silently checking nothing
+(root `tsconfig.json` has `"files": []`, only real target is `tsc -b`
+against the project references). Fixed the missing type
+(`tsconfig.app.json` "types" array) and added `npm run typecheck`
+(`tsc -b --force`), now wired into `make test`, so this can't
+silently pass again.
+
 ## Tests
 
-`tests/` — pytest. Re-ran 2026-06-30: **125/125 passed**.
-`frontend/` — Vitest: 7/7 passed. Playwright e2e: 1/1 passed.
-`make test` runs both Python and frontend unit tests together.
+`tests/` — pytest. Re-ran 2026-06-30: **149/149 passed**.
+`frontend/` — Vitest: 15/15 passed. Playwright e2e: 1/1 passed.
+`make test` runs pytest + frontend typecheck + frontend unit tests together.
 
 ## How to reproduce data/outputs
 

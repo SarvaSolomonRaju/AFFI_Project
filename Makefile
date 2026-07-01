@@ -8,7 +8,7 @@ PYTEST  ?= pytest
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install data local-assets infrastructure forecast map dashboard all test lint clean veryclean docker-build docker-run serve-api frontend-install frontend-test frontend-test-e2e
+.PHONY: help install data local-assets infrastructure forecast map dashboard all test lint clean veryclean docker-build docker-run docker-up docker-down serve-api frontend-install frontend-test frontend-test-e2e
 
 help:
 	@echo "FloodAI - Real-data flood forecasting pipeline"
@@ -24,7 +24,9 @@ help:
 	@echo "  make test        - run pytest (102 tests expected to pass)"
 	@echo "  make clean       - remove outputs/ and pycache"
 	@echo "  make veryclean   - also remove data/ (forces full re-download)"
-	@echo "  make docker-build / docker-run - container workflow"
+	@echo "  make docker-build / docker-run - single-container API image workflow"
+	@echo "  make docker-up   - one command: API + frontend + scheduler, http://localhost:3000"
+	@echo "  make docker-down - stop the docker-up stack"
 
 install:
 	$(PIP) install -r requirements.txt
@@ -63,7 +65,7 @@ frontend-install:
 	cd frontend && npm install
 
 frontend-test:
-	cd frontend && npm run test
+	cd frontend && npm run typecheck && npm run test
 
 frontend-test-e2e:
 	@echo "Requires 'make serve-api' running separately (AFFI_AUTH_DISABLED=true)"
@@ -84,3 +86,10 @@ docker-build:
 
 docker-run:
 	docker run --rm -p 8000:8000 -v $$(pwd)/outputs:/app/outputs floodai:latest
+
+docker-up:
+	docker compose up --build -d
+	@echo "Frontend: http://localhost:3000  |  API docs: http://localhost:8000/docs"
+
+docker-down:
+	docker compose down
