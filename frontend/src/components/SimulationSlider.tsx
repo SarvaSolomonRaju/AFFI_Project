@@ -13,22 +13,28 @@ interface SimulationSliderProps {
 
 export function SimulationSlider({ onChange }: SimulationSliderProps) {
   const [data, setData] = useState<SimulationScenariosResponse | null>(null);
-  const [index, setIndex] = useState(4); // default to the 100-yr scenario
+  const [index, setIndex] = useState(4); // default preview: 100-yr scenario
+  // Only true once the user actually drags the slider. Without this,
+  // the map would silently switch to the simulation overlay the moment
+  // this component loads — before anyone touched anything — which is
+  // exactly the "simulation looks like it's live" confusion this was
+  // built to avoid.
+  const [touched, setTouched] = useState(false);
 
   useEffect(() => {
     apiGet<SimulationScenariosResponse>("/api/v1/simulation/scenarios").then(setData);
   }, []);
 
-  // Whenever the selected index (or the data) changes, tell the parent
-  // which scenario is active — this is the "React state driving two
-  // things at once" idea: the stats panel below AND the map overlay.
+  // Tell the parent which scenario is active — but only after the user
+  // has interacted. Until then, FloodMap keeps showing today's real
+  // forecast, not this component's default preview value.
   useEffect(() => {
-    if (!data) return;
+    if (!data || !touched) return;
     const T = data.return_periods_yr[index];
     const scenario = data.scenarios[String(T)];
     onChange(T, apiRasterUrl(scenario.raster_url));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, index]);
+  }, [data, index, touched]);
 
   if (!data) return <p>Loading simulation scenarios…</p>;
 
@@ -43,7 +49,10 @@ export function SimulationSlider({ onChange }: SimulationSliderProps) {
         min={0}
         max={data.return_periods_yr.length - 1}
         value={index}
-        onChange={(e) => setIndex(Number(e.target.value))}
+        onChange={(e) => {
+          setTouched(true);
+          setIndex(Number(e.target.value));
+        }}
         style={{ width: "100%" }}
       />
       <div style={{ display: "flex", gap: 24, marginTop: 12, flexWrap: "wrap" }}>

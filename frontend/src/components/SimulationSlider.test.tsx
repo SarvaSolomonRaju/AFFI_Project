@@ -12,18 +12,21 @@ const SCENARIOS = {
 };
 
 describe("SimulationSlider", () => {
-  it("defaults to the 100-yr scenario and reports it to the parent", async () => {
+  it("previews the 100-yr scenario without telling the parent, until touched", async () => {
     vi.spyOn(client, "apiGet").mockResolvedValue(SCENARIOS);
     vi.spyOn(client, "apiRasterUrl").mockImplementation((p) => `http://localhost:8000${p}`);
     const onChange = vi.fn();
 
     render(<SimulationSlider onChange={onChange} />);
 
+    // Shows a default preview (100-yr) so the panel isn't empty, but
+    // does NOT tell the parent yet — the map must keep showing today's
+    // real forecast until the user actually drags the slider.
     expect(await screen.findByText(/100-year storm/)).toBeInTheDocument();
-    expect(onChange).toHaveBeenCalledWith(100, "http://localhost:8000/api/v1/simulation/raster/100");
+    expect(onChange).not.toHaveBeenCalled();
   });
 
-  it("dragging the slider to a different value reports the new scenario", async () => {
+  it("dragging the slider reports the scenario to the parent for the first time", async () => {
     vi.spyOn(client, "apiGet").mockResolvedValue(SCENARIOS);
     vi.spyOn(client, "apiRasterUrl").mockImplementation((p) => `http://localhost:8000${p}`);
     const onChange = vi.fn();
@@ -34,6 +37,7 @@ describe("SimulationSlider", () => {
     fireEvent.change(screen.getByRole("slider"), { target: { value: "0" } });
 
     expect(await screen.findByText(/5-year storm/)).toBeInTheDocument();
+    expect(onChange).toHaveBeenCalledTimes(1);
     expect(onChange).toHaveBeenLastCalledWith(5, "http://localhost:8000/api/v1/simulation/raster/5");
   });
 });

@@ -42,9 +42,13 @@ interface FloodMapProps {
   // When set (by the simulation slider), shows that scenario's raster
   // instead of today's real forecast — same map, different data source.
   overlayUrl?: string;
+  // True while showing a what-if scenario instead of today's real
+  // forecast — drives the on-map warning badge so it's never mistaken
+  // for live data.
+  isSimulation?: boolean;
 }
 
-export function FloodMap({ overlayUrl }: FloodMapProps) {
+export function FloodMap({ overlayUrl, isSimulation }: FloodMapProps) {
   const [config, setConfig] = useState<MapConfig | null>(null);
   const [nfhlZones, setNfhlZones] = useState<GeoJSON.FeatureCollection | null>(null);
   const [roads, setRoads] = useState<GeoJSON.FeatureCollection | null>(null);
@@ -66,7 +70,25 @@ export function FloodMap({ overlayUrl }: FloodMapProps) {
   const rasterUrl = overlayUrl ?? apiRasterUrl("/api/v1/map/raster/today-likely");
 
   return (
-    <div style={{ height: 520, marginTop: 20, borderRadius: 8, overflow: "hidden" }}>
+    <div style={{ height: 520, marginTop: 20, borderRadius: 8, overflow: "hidden", position: "relative" }}>
+      {isSimulation && (
+        <div
+          style={{
+            position: "absolute",
+            top: 12,
+            left: 12,
+            zIndex: 10,
+            background: "var(--accent-orange)",
+            color: "black",
+            fontWeight: 700,
+            padding: "6px 12px",
+            borderRadius: 6,
+            fontSize: "0.85rem",
+          }}
+        >
+          WHAT-IF SIMULATION — not live data
+        </div>
+      )}
       <Map
         mapStyle={BASE_STYLE}
         initialViewState={{
