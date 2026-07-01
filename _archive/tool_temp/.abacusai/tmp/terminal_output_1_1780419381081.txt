@@ -1,0 +1,978 @@
+--- PAGE 1 ---
+ 
+Arizona Flash Flood Inundation AI Early Warning System 
+(AFFI) 
+A Physics-Guided Artificial Intelligence Framework for 
+Real-Time Flood Inundation Forecasting in Rural Southern Arizona 
+ 
+ 
+May 11, 2026   
+Prepared by: Solman Raju Sarva, MSc — AI & Hydrology Researcher and William D. O'Brien, PE, CFM — Principal 
+Engineer, NextGen Engineering Inc.  
+Pilot Watershed: Upper Sonoita Creek Watershed, near Patagonia, Santa Cruz County, AZ  
+Training Watershed: Walnut Gulch, near Tombstone, Cochise County AZ 
+ 
+SCOPE: This “white paper” presents a technical framework for Flood Inundation Early Warning pilot tested on the 
+Upper Sonoita Creek Watershed (HUC 150503010204) in Santa Cruz County, Arizona. The architecture, 
+methodology, and deliverables described herein are designed to be transferable to any watershed in Arizona or 
+the United States with minimal reconfiguration. This “white paper” is aimed at building collaboration for the full 
+development of AFFI early warning systems. 
+1.​Executive Summary 
+ 
+Flash floods are the deadliest natural hazard in Arizona, killing an average of 14 people per year and causing 
+$180 million in annual property damage. The fundamental problem is not the flood — it is the time delay 
+from storm forecasts to seeing where to warn people. Current physics-based flood simulation tools require 
+4 to 6 hours to produce a flood inundation map. A monsoon flash flood in Southern Arizona can arrive in 
+under 2 hours. That gap between warning and flood impact is where lives are lost. 
+The Arizona Flash Flood Inundation AI Early Warning System (AFFI) closes this gap. AFFI is a 
+six-staged physics-guided artificial intelligence pipeline that ingests real-time weather forecast data and 
+delivers a probabilistic flood inundation map to authorized government personnel at their phone or 
+Emergency Operations Centers (EOC) in about 60 seconds — 360 times faster than current methods — 
+with accuracy comparable to physics-based models. Table ES-1 outlines the benefits of AFFI. 
+This document describes the complete technical architecture of AFFI, piloted on the Upper Sonoita Creek 
+Watershed (HUC 150503010204) in Patagonia, Santa Cruz County, Arizona. Every component of this system is 
+designed for transferability: the same AFFI System, with watershed-specific data substitution, can be deployed 
+for any watershed in Arizona or the United States. 
+To improve model robustness and transferability, the AI system is first trained on USDA Walnut Gulch 
+Experimental Watershed hydrologic and rainfall-runoff data and then fine-tuned for the targeted watershed 
+deployment area. (Since the late 1950s the Walnut Gulch Watershed has long-term hydrology, erosion, and 
+water quality data collection and research programs near Tombstone, Az.) The transfer-learning approach 
+allows AFFI to leverage high-quality historical flood dynamics from a well-instrumented watershed while 
+adapting to the terrain, hydrology, and storm-response characteristics of the specific target watershed. 
+The full development of the AFFI system is broken into tasks, each with specific, verifiable deliverables. All data 
+sources are publicly available from federal agencies at no licensing cost. The flood plain modeling software, 
+Hec-Ras, is publicly available. Task 1 has already been completed and validated.  
+ 
+                                                                                   1                                                                                         AFFI 
+
+--- PAGE 2 ---
+Table ES-1: Benefits of AFFI 
+ 
+Metric 
+Current Capability 
+AFFI 
+Improvement 
+Time to flood map 
+4–6 hours (HEC-RAS) 
+< 60 seconds 
+360× faster 
+Watersheds covered 
+Gauged only (~12% of AZ) 
+Any watershed in AZ 
+Statewide Applicability 
+Forecast lead time 
+0–2 hours 
+Up to 7 days 
+84× longer 
+Ensemble members 
+1 (deterministic) 
+31 (probabilistic) 
+Uncertainty quantified 
+Cost per forecast 
+~$2,400 (EOC activation) 
+~$0.04 (cloud compute) 
+60,000× cheaper 
+Ungauged basin 
+coverage 
+Requires stream gauge 
+calibration 
+Any Arizona watershed 
+Ungauged-ready 
+ 
+ 
+2.​Problem Statement: Flash Flooding in Rural Southern Arizona 
+ 
+2.1​Human Cost 
+Between 2000 and 2023, flash floods killed 287 people in Arizona — more than tornadoes, hurricanes, 
+and earthquakes combined in the same period (NOAA Storm Data, 2023). Most fatalities occurred in 
+vehicles, where drivers encountered flooded roadways with little or no advance warning. 
+The pilot area for AFFI is the Upper Sonoita Creek watershed near Patagonia in Santa Cruz County, Arizona 
+(HUC 150503010204). This drains 55.4 mi2 (143.6 km²) of semi-arid terrain and has experienced 12 major 
+flood events since 1980, with peak flows exceeding the 50-year return period on three occasions. State 
+Route 82 near Patagonia — the only evacuation route for 3,200 people — has been rendered impassable by 
+flooding on multiple occasions with little or no advance warning to emergency managers. 
+Example: The 2006 Santa Cruz County Monsoon Flood: A single monsoon event caused $12 million in 
+infrastructure damage, displaced 340 residents, and closed State Route 82 for 72 hours. Emergency managers 
+received no advance flood inundation map. Response was entirely reactive. This event is the baseline 
+scenario AFFI is designed to mitigate. 
+2.2​Infrastructure and Economic Cost 
+The economic cost of flash flooding in Arizona averages $180 million annually in direct damage to roads, 
+bridges, utilities, and structures (FEMA, 2022). Indirect costs include emergency response mobilization 
+($2,400/hour for a county EOC), post-flood debris removal ($180,000–$450,000 per major event), 
+long-term infrastructure repair ($1.2M–$8M per bridge or road segment), and agricultural losses 
+($15M–$40M per severe monsoon season in Southern Arizona). 
+2.3​The Technology Gap 
+Southern Arizona's rural flash flood problem is uniquely diﬃcult. The region is characterized by hundreds of 
+ephemeral washes and arroyos — channels that are dry for 300+ days per year but can carry catastrophic 
+flows within minutes of drenching by a monsoon rain cell. These channels are ungauged, ephemeral, braided, 
+and peak with a rapid response to rainfall. The time of concentration as short as 15–30 minutes for small 
+sub-watersheds. 
+Current flood mapping operational tools — NOAA's National Water Model, FEMA Flood Insurance Rate 
+Maps, Google Flood Hub — were designed for large, gauged river systems. They provide valuable 
+national-scale flood information but do not address the specific challenge of rural, ungauged, ephemeral 
+ 
+                                                                                   2                                                                                         AFFI 
+
+--- PAGE 3 ---
+flash flood prediction in Southern Arizona. No existing operational system provides real-time, 
+event-specific ﬂood inundation maps for ungauged rural arroyos in Southern Arizona with lead times 
+suﬃcient for emergency management action. AFFI fills this gap. 
+2.4​The Climate Trend 
+Climate projections for the Southwest United States indicate a 15–40% increase in extreme precipitation 
+intensity during monsoon events by 2050 (IPCC AR6, 2021). Flood events that currently occur once every 50 
+years will occur once every 20–30 years by mid-century. The window for investing in flood inundation early 
+warning infrastructure — before these events become routine — is urgent. 
+ 
+3.​Existing Systems and Their Limitations 
+ 
+A thorough review of existing flood inundation forecasting systems confirms that no current tool adequately 
+addresses the rural Southern Arizona flash flood problem. The following analysis is not a criticism of these 
+systems — each is excellent for its intended purpose. It is a demonstration that a gap exists which none of 
+them fills. 
+Table 1: Comparison of AFFI with other Flood Inundation Mapping Systems 
+ 
+    System 
+Forecast Type 
+Lead Time 
+Ungauged 
+Basins 
+Rural 
+Arroyos 
+Real-Time 
+Maps 
+AFFI (Proposed) 
+Probabilistic 
+inundation 
+maps 
+Up to 7 days 
+Yes 
+Yes 
+Yes 
+NOAA NWM 
+Streamflow forecast 
+Up to 7 days 
+Limited 
+No 
+No 
+Google Flood Hub 
+Flood forecast + maps 
+Up to 7 days 
+No 
+No 
+Partial 
+FEMA FIRM 
+Static hazard zones 
+None 
+(static) 
+Partial 
+Partial 
+No 
+First Street Foundation Risk scoring 
+None 
+(static) 
+Partial 
+No 
+No 
+FLASH 
+(RoyalHaskoningDHV) 
+Short-lead flood alerts 
+Hours to 1 day 
+No 
+No 
+Partial 
+3.1​Detailed Limitations of Each System 
+NOAA National Water Model (NWM): The NWM is the outstanding national-scale streamflow forecasting 
+system. However, it requires stream gauge calibration data and is not designed for ephemeral channels. It 
+produces streamflow forecasts, not spatial flood inundation maps. Reference: NOAA Oﬃce of Water 
+Prediction. 
+Google Flood Hub: Provides flood forecasting for gauged rivers globally. But does not cover ungauged basins 
+or ephemeral arroyos. Coverage in Arizona is limited to major perennial rivers. Reference: Google Flood Hub. 
+FEMA Flood Insurance Rate Maps (FIRM): Static maps showing 100-year and 500-year flood zones. Not 
+event-specific, not real- time, and not updated frequently enough to reflect current channel or specific 
+storm conditions. Reference: FEMA Flood Map Service Center. 
+ 
+                                                                                   3                                                                                         AFFI 
+
+--- PAGE 4 ---
+First Street Foundation: Provides property-level flood risk scores. Static, not event-specific, and not 
+designed for emergency operations. Reference: First Street Foundation. 
+FLASH System: Provides short-lead flash flood alerts based on radar rainfall. Does not produce spatial 
+inundation maps and does not cover ungauged basins with suﬃcient resolution for rural Arizona. Reference: 
+NOAA Flash Flood Guidance. 
+ 
+ 
+4.​Technical Solution: The AFFI Architecture 
+ 
+4.1​System Overview — The Physical Pipeline 
+AFFI follows the physically correct sequence for flood prediction. This sequence mirrors nature, how rainfall 
+becomes a flood: 
+Rainfall Forecast → Mean Areal Watershed Precipitation → Runoﬀ / Discharge → Flood Depth 
+& Extent → Probability Maps → Alert 
+Each arrow represents a distinct physical transformation. Each transformation is handled by the most 
+appropriate computational method — physics-based where physics is well understood, AI-based where AI has 
+been proven to match or exceed physics-based accuracy at a fraction of the computational cost. 
+Table 2: Six Stages of AFFI Architecture 
+ 
+Stage 
+Input 
+Output 
+Method 
+Time 
+Stage 1: 
+Meteorology 
+GFS/HRRR ensemble 
+forecast 
+Mean Areal Precipitation 
+(MAP) per watershed 
+Statistical 
+downscaling 
+~5 sec 
+Stage 2: Hydrology 
+MAP time series + 
+watershed attributes 
+Peak discharge (ft³/s) + 
+hydrograph 
+Physics-guided 
+LSTM 
+~8 sec 
+Stage 3: Hydraulics 
+Peak discharge + terrain 
+(DEM) 
+Flood depth + extent raster 
+U-Net / ResUNet 
+~45 
+sec 
+Stage 4: 
+Probabilistic 
+Output 
+31 ensemble flood maps 
+Probability maps, uncertainty 
+maps 
+Ensemble statistics 
+~2 sec 
+Stage 5: 
+Benchmarking 
+Predicted discharge 
+Return period classification 
+(2yr–100yr) 
+NOAA Atlas 14 
+comparison 
+~1 sec 
+Stage 6: Alert 
+All above outputs 
+Alert packet (JSON) + 
+dashboard 
+Rule-based logic + 
+API 
+~1 sec 
+Total pipeline run time: ~ 60 seconds. This compares to 4–6 hours for the equivalent hydrology 
+(HEC-HMS model or equal) + hydraulic (HEC- RAS model or equal) physics-based simulation modeling 
+chain. 
+ 
+ 
+4.2​Why This Architecture and Not Others 
+After reviewing over 200 published AI flood prediction systems, this six-stage architecture is the only design 
+ 
+                                                                                   4                                                                                         AFFI 
+
+--- PAGE 5 ---
+that satisfies all five operational requirements simultaneously: 
+•​Speed: ~ 60 seconds end-to-end — required for flash flood warning 
+•​Accuracy: Comparable to physics-based models — required for government trust 
+•​Transferability: Works on ungauged watersheds — required for statewide and rural deployment 
+•​Interpretability: Each stage has physical meaning — required for regulatory acceptance 
+•​Uncertainty quantification: Probabilistic output — required for risk-based decisions 
+A single end-to-end deep learning model (rainfall directly to flood map) fails on transferability — it only 
+memorizes the training watershed and cannot transfer. A pure physics model fails on speed. The six-stage 
+hybrid presented is the only architecture that passes all five tests. 
+4.3​Stage 1: Meteorological Interface — Explained 
+What it does: Ingests ensemble rainfall forecasts from NOAA's Global Forecast System (GFS, 31 members, 6- 
+hourly updates) and the High-Resolution Rapid Refresh (HREF -High-Resolution Ensemble Forecast, ~10 
+members, hourly, CONUS). For each watershed, computes Mean Areal Precipitation (MAP) is the spatially 
+averaged rainfall over the watershed extent — for forecast horizons of 1, 3, 6, 12, 24, 48, 72, and 168 hours. 
+Why it matters: A point rainfall measurement tells you how much rain fell at one location. A watershed 
+responds to the average rainfall over its entire area. MAP is the physically correct input to a hydrologic 
+model. Using point rainfall instead of MAP is a common error that leads to significant over- or 
+under-prediction of flood response. 
+What is AI at this stage? Stage 1 is NOT AI. It is physics-based numerical weather prediction (NWP) from 
+NOAA's operational models. The AI begins in Stage 2. This distinction is important for scientific integrity and 
+regulatory acceptance. 
+Comparison to 10-year storm rainfall: Each MAP value is compared against NOAA Atlas 14 precipitation 
+frequency benchmarks for Santa Cruz County, producing a return-period classification (2-year through 
+100-year) and an initial alert level (Advisory / Watch / Warning). This allows emergency managers to 
+immediately understand whether an incoming storm is a routine event or a rare, high-consequence event. 
+4.4​Stage 2: Physics-Guided LSTM Hydrology Model — Explained 
+What it does: Converts the MAP time series into a predicted streamflow hydrograph (discharge over time, in 
+ft³/s) using a Long Short-Term Memory (LSTM) neural network trained on Walnut Gulch 70-year anchor 
+dataset, fine-tuned on pilot watershed. 
+Why LSTM? Rainfall-runoﬀ is a time-dependent process — today's soil moisture depends on yesterday's 
+rainfall. LSTM networks are specifically designed to learn these temporal dependencies. They have been 
+independently validated on 531 US watersheds by Kratzert et al. (2019), achieving Nash-Sutcliﬀe Eﬃciency 
+(NSE) > 0.80 — matching or exceeding calibrated physics-based models. 
+HOW: LSTM is trained in two stages: base training on a high-quality anchor watershed (Walnut Gulch), 
+followed by fine-tuning on the pilot watershed. Reference transfer learning in hydrology (Kratzert et al. 2019 
+already supports this) 
+Why "physics-guided"? The LSTM incorporates static watershed attributes (drainage area, slope, soil 
+permeability, vegetation index, elevation, aridity index) from the USGS GAGES-II dataset. These attributes 
+encode the physical characteristics of the watershed into the model, enabling it to predict discharge for 
+watersheds it has never seen — the key to generalizability, Model training follows a two-stage transfer learning 
+strategy. In Stage 1, the LSTM is trained on the Walnut Gulch Experimental Watershed — the world's most 
+ 
+                                                                                   5                                                                                         AFFI 
+
+--- PAGE 6 ---
+complete semi-arid flash flood dataset with 70+ years of record — learning fundamental desert hydrology: 
+rapid infiltration, Hortonian overland flow, ephemeral channel routing, and monsoon precipitation-runoff 
+dynamics. In Stage 2, the base model is fine-tuned on local gauge data for the target watershed (for the Sonoita 
+Creek pilot) using only the final layers, requiring as few as 10–15 years of local data. This approach — base 
+training on a data-rich anchor watershed followed by targeted fine-tuning — is established in the hydrology AI 
+literature (Kratzert et al. 2019) and is the mechanism that enables generalization to ungauged watersheds. 
+Comparison to 10-year storm peak runoff: The predicted peak discharge is compared against the 10-year, 
+25-year, 50- year, and 100-year return period flows derived from USGS regional regression equations for 
+Arizona. This tells emergency managers "how rare or how extreme” this event is. 
+4.5​Stage 3: U-Net Hydraulic Surrogate Model — Explained 
+What it does: Converts predicted discharge into a spatial flood inundation map (flood depth and extent raster) 
+using a U-Net convolutional neural network trained on 250 physics-based HEC-RAS flood simulations. 
+Why U-Net? U-Net was originally developed for medical image segmentation and is now the standard 
+architecture for spatial prediction problems. It takes a 2D input (terrain + discharge) and produces a 2D output 
+(flood depth map) — exactly the transformation needed for hydraulic modeling. 
+Why train on HEC-RAS? HEC-RAS is the industry-standard open-source hydraulic model used by FEMA 
+and USACE. By training the U-Net on HEC-RAS outputs, AFFI inherits the physical accuracy of HEC-RAS 
+while operating 360× faster. The U-Net is a surrogate (emulator) of HEC-RAS, not a replacement. 
+Physics constraints enforced: Three physics constraints are applied to the U-Net output: (1) Gravity 
+constraint — water cannot flow uphill; (2) Monotonicity constraint — higher discharge must produce equal 
+or greater flood inundation area and extent; (3) Mass conservation — total predicted runoﬀ volume cannot 
+exceed total rainfall volume. These constraints ensure physical plausibility even for scenarios outside the 
+training distribution. 
+Comparison to 10-year to 100-year flood inundation: The predicted flood map is compared against 
+pre-computed HEC-RAS flood maps for the 10-year, 25-year, 50-year, and 100-year period events. This provides 
+emergency managers with a direct, intuitive benchmark: "This event is expected to produce flooding 
+comparable to a 25-year storm." 
+ 
+4.6​Stage 4: Probabilistic Output 
+The full AFFI pipeline is executed independently for each of the 31 GFS ensemble members, producing 31 flood 
+inundation maps for each forecast event. These maps are stacked and 4 critical flood maps are produced. This 
+ensemble approach quantifies forecast uncertainty and produces the following 6 output products as described 
+in Table 3: 
+ 
+ 
+ 
+Table 3: Useable Probabilistic Output 
+ 
+Output Product 
+Description 
+Primary User 
+Flood Inundation Maps 
+ 
+ 
+ 
+                                                                                   6                                                                                         AFFI 
+
+--- PAGE 7 ---
+Median flood map 
+Best-estimate flood depth and extent 
+EOC Staff 
+90th percentile map 
+Worst-case scenario (10% chance of exceeding) 
+EOC staff, Public Works 
+Director 
+Probability map 
+P(depth > 0.5m) for each pixel, 0–100% 
+EOC Staff 
+Uncertainty map 
+Standard deviation of depth across 31 maps 
+Technical reviewer 
+Warnings 
+ 
+ 
+Alert classification 
+Advisory / Watch / Warning vs. return period 
+County OEM 
+Time-to-peak estimate 
+Hours until maximum flooding at each location 
+Road closure coordinator 
+4.7​Stage 5: Benchmarking - Explained 
+What it does: Compares every AFFI-predicted rainfall, discharge, and flood map against established federal 
+engineering benchmarks — NOAA Atlas 14 precipitation frequency data and USGS regional regression 
+equations — to classify each event by return period (2-year through 100-year). This gives emergency managers 
+an immediate, intuitive answer: "Is this a routine storm or a once-in-50-years event?" 
+Why it matters: Emergency managers are trained to act on return period language. A raw discharge number 
+(e.g., 4,200 ft³/s) is meaningless without context. Saying "this event is comparable to a 25-year storm" is 
+immediately actionable. Benchmarking translates AI output into the engineering language that government 
+decision-makers trust and are legally required to use. 
+What is AI at this stage? Stage 5 is NOT AI. It is a deterministic comparison engine using published federal data. 
+This distinction reinforces scientific integrity and regulatory credibility. 
+4.8​Stage 6: Alert Policy - Explained 
+The alerts from the AFFI need to support the many other data and real-time voices that the Emergency 
+personnel and public officials must deal with. The following Alert Policy is recommended: 
+ 
+4.9​Lead-Time-Dependent Confidence Framework 
+As the time of the event approaches, the confidence of the prediction improves. Table 4 shows the rough 
+measure of confidence as the storm approaches.  
+Table 4: Confidence of Predicted Flooding and Related Actions 
+ 
+Lead Time 
+Primary Data Source 
+Confidence Level 
+Primary Use 
+2–7 days 
+GFS ensemble (31 members) 
+Low–Medium 
+Pre-positioning resources, early briefings 
+6–24 hours 
+HRRR + updated GFS 
+Medium–High 
+Road closure decisions, evacuation planning 
+0–6 hours 
+MRMS radar + nowcast 
+High 
+Active road closures, emergency response 
+ 
+ 
+ 
+ 
+ 
+ 
+                                                                                   7                                                                                         AFFI 
+
+--- PAGE 8 ---
+ 
+ 
+5.​Development of AFFI – Detailed Tasks Descriptions with Deliverables 
+ 
+Tasks T1 through T6 
+ 
+Meteorological       LSTM- Training         U- Net Hydraulic    ​    Probabilistic               Benchmark                   Alert 
+Forecasts                                                                                            Ensemble                    & Validation  
+Task 1: Meteorological Forecast Interface 
+Objective: Build and validate the system that ingests real-time weather forecast data and computes Mean 
+Areal Precipitation (MAP) for the Upper Sonoita Creek Watershed, with alert threshold logic benchmarked 
+against NOAA Atlas 14 return periods. 
+Step-by-Step: 
+•​Step 1.1 — Define Area of Interest (AOI): Load the Upper Sonoita Creek Watershed boundary 
+(HUC 150503010204) from the USGS National Map. Define bounding box (N=31.85, S=31.47, 
+E=−110.50, W=−110.90). This is the spatial domain for all precipitation calculations. 
+•​Step 1.2 — Ingest GFS Ensemble Forecast: Connect to the Open-Meteo API (free, no key required) to 
+retrieve 31-member GFS ensemble precipitation forecasts at 6-hourly intervals for 7-day lead times. 
+Parse and store as structured arrays. 
+•​Step 1.3 — Compute Mean Areal Precipitation (MAP): Spatially average the gridded GFS precipitation 
+over the watershed boundary using area-weighted averaging. Compute MAP for accumulation windows 
+of 1, 3, 6, 12, 24, 48, 72, and 168 hours. 
+•​Step 1.4 — Load NOAA Atlas 14 Benchmarks: Load precipitation frequency estimates for Santa Cruz 
+County, AZ from NOAA Atlas 14 Volume 1 for return periods of 2, 5, 10, 25, 50, and 100 years at all 
+accumulation durations. These are the physical benchmarks against which all forecast rainfall is 
+compared. 
+•​Step 1.5 — Compute Return Period Classification: For each MAP value and accumulation duration, 
+determine which return period bracket it falls into (e.g., "between 10-year and 25-year"). Compute a 
+Storm Severity Index (SSI = MAP / MAP_10yr) for each duration. 
+•​Step 1.6 — Apply Alert Threshold Logic: Apply the following thresholds calibrated for the Sonoita 
+Creek watershed: Advisory (0.25"/1hr, 0.75"/24hr), Watch (0.50"/1hr, 1.25"/24hr), Warning (1.00"/1hr, 
+2.00"/ 24hr). Generate an alert level (GREEN / ADVISORY / WATCH / WARNING) for each ensemble 
+member and each lead time. 
+•​Step 1.7 — Generate Alert Packet: Compile all outputs into a structured JSON alert packet 
+containing: alert level, MAP values, return period classifications, ensemble statistics (mean, 10th, 50th, 
+90th percentile), and time-to-peak estimate. 
+•​Step 1.8 — Dummy Rainfall Stress Test: Validate the alert logic using synthetic rainfall scenarios 
+spanning the full range from light shower to extreme cloudburst. Confirm that each scenario triggers 
+the correct alert level and return period classification. 
+ 
+ 
+ 
+                                                                                   8                                                                                         AFFI 
+
+--- PAGE 9 ---
+ 
+ 
+ 
+ 
+​
+ 
+Status: D1.1 through D1.4 deliverables have been produced and validated for the Upper Sonoita Creek 
+Watershed in early May 2026. 
+Task 2: LSTM training & transfer learning (Base Model → Fine‑tune) 
+Objective: To teach AI how desert floods work. We start with a world-class foundational model (trained on 
+Walnut Gulch Watershed) and "fine-tune" it to our specific pilot location at Sonoita Creek. This two-stage 
+approach allows us to launch new watersheds in a fraction of the time and with far less local data. 
+Step-by-Step: 
+•​Step 2.1 — Data Setup: Collect historical rain and streamflow records from Walnut Gulch (our 
+"Anchor" site) and Sonoita Creek (our "Pilot" site). 
+•​Step 2.2 — Base Training: Train a "Foundation" AI model on Walnut Gulch’s 70-year record. This teaches 
+the AI the general "physics" of Arizona flash floods. 
+•​Step 2.3 — Benchmarking: Compare our AI's performance against historical physics models to ensure it 
+is accurate and balanced. 
+•​Step 2.4 — Local Fine-Tuning: Take the "Anchor" model and adapt it to Sonoita Creek. Instead of 
+retraining the whole brain, we only update the parts that need to learn local soil and terrain. 
+•​Step 2.5 — Event Testing: Test the final model against major historical floods (like the 2014 Hurricane 
+Odile remnants) to verify the timing and size of alerts. 
+•​Step 2.6 — Return Period Discharge Estimation: For each watershed, derive the 2yr, 10yr, 25yr, 50yr, 
+and 100yr return period discharge values using USGS regional regression equations for Arizona. These 
+become the hydraulic benchmarks for Task 3. 
+ 
+Deliverables:  
+D2.1 — Model Library: The Walnut Gulch "Anchor" model and the Sonoita "Pilot" model files 
+D2.2 — Performance Report: A simple scorecard showing how well the AI predicted flows (using metrics                
+like NSE and Peak Timing). 
+   D2.3 — Training Configs: The digital "recipe" files so any engineer can reproduce the exact same results later.    
+   D2.4 — Validation Plots: Visual charts showing the AI’s prediction versus actual historical flood events 
+ 
+                                                                                   9                                                                                         AFFI 
+
+--- PAGE 10 ---
+   D2.5 — Deployment Checklist: A short manual for moving this AI to a new watershed 
+ 
+Task 3: U-Net Hydraulic Surrogate Model 
+Objective: Train and validate a U-Net convolutional neural network that converts predicted discharge 
+into spatial flood inundation maps, using HEC-RAS simulations as training data. 
+Step-by-Step: 
+•​Step 3.1 — Prepare Terrain Data: Download USGS 3DEP 1-meter lidar DEM for the Upper 
+Sonoita Creek Watershed. The 25-watershed expansion is a activity (Task 7). In the U-Net is trained 
+exclusively on the pilot watershed using HEC-RAS simulations specific to Sonoita Creek terrain. 
+•​Step 3.2 — Build HEC-RAS Models: Construct a 2D HEC-RAS hydraulic model for the Upper Sonoita 
+Creek Watershed using the conditioned 1-meter lidar DEM and Manning's roughness values from 
+NLCD land cover. Calibrate against available historical high-water marks from the 2006 Santa Cruz 
+County monsoon flood (the baseline event defined in Section 2.1) and the 2014 Odile remnant event. 
+•​Step 3.3 — Run HEC-RAS Simulations: Execute 50 HEC-RAS simulations for the Upper Sonoita 
+Creek Watershed (10 discharge levels: Q2, Q5, Q10, Q25, Q50, Q100, and 4 intermediate levels; 5 
+replicates with varied Manning's n to capture roughness uncertainty). Expanding to 25 watersheds × 
+250 simulations. Starting with 50 high-quality simulations on one watershed is sufficient to train the 
+U-Net surrogate for  operational deployment. 
+•​Step 3.4 — Design U-Net Architecture: Implement a ResUNet (U-Net with residual connections) with: 
+input channels = DEM + slope + channel distance + discharge value; output channel = flood depth (feet); 4 
+encoder/decoder levels; skip connections at each level. 
+•​Step 3.5 — Train U-Net: Train on 50 simulations (1 watershed × 10 discharge levels + replicates), 
+validate on 25 simulations (5 watersheds × 5 discharge levels), test on 25 simulations (5 held-out 
+watersheds × 5 discharge levels). Use Adam optimizer, combined MSE + structural similarity loss. 
+•​Step 3.6 — Enforce Physics Constraints: Post-process U-Net output to enforce: (1) gravity constraint 
+— zero depth for pixels above predicted water surface elevation; (2) monotonicity — higher discharge = 
+equal or greater extent; (3) mass conservation — total volume check. 
+•​Step 3.7 — Validate Against HEC-RAS: Compare U-Net flood maps against HEC-RAS maps on held-out 
+watersheds using Intersection over Union (IoU), Critical Success Index (CSI), and mean absolute depth 
+error (MAE). Target: IoU > 0.75. 
+•​Step 3.8 — Generate Return Period Flood Map Library: For each watershed, generate 
+pre-computed flood maps for Q2, Q10, Q25, Q50, and Q100 using both HEC-RAS (reference) and U-Net 
+(operational). These become the benchmark flood maps for comparison in the alert system. 
+ 
+Deliverables 
+D3.1 — Hydraulically conditioned DEMs for all 25 watersheds, documented processing workflow. 
+D3.2 — 250 HEC-RAS flood simulation outputs (depth rasters), organized by watershed and discharge level. This is 
+the primary training dataset for the U-Net. 
+D3.3 — Trained U-Net model: unet_hydraulic_model.pt — PyTorch model file with documented 
+architecture and training history. 
+D3.4 — Validation report: IoU, CSI, MAE for all 25 watersheds. IoU > 0.75 on held-out watersheds. 
+ 
+                                                                                   10                                                                                         AFFI 
+
+--- PAGE 11 ---
+D3.5 — Return period flood map library: Pre-computed flood maps (GeoTIFF) for Q2, Q10, Q25, Q50, Q100 for all 
+25 watersheds — both HEC-RAS reference and U-Net operational versions. 
+Task 4: Probabilistic Risk Products 
+Objective: Execute the full pipeline for all 31 GFS ensemble members and generate probabilistic flood risk 
+products suitable for emergency management decision-making. 
+Step-by-Step: 
+•​Step 4.1 — Ensemble Pipeline Execution: Run the complete Task 1 → Task 2 → Task 3 pipeline 
+independently for each of the 31 GFS ensemble members. This produces 31 flood depth maps for 
+each forecast event. 
+•​Step 4.2 — Compute Ensemble Statistics: For each pixel in the flood map domain, compute: median 
+depth (50th percentile), 90th percentile depth (worst-case), probability of exceeding 0.5m depth, 
+standard deviation (uncertainty), and ensemble agreement index. 
+•​Step 4.3 — Generate Probability Map: Create a raster where each pixel value represents the 
+probability (0–100%) that flood depth will exceed 0.5 meters. This is the primary decision-support 
+product for emergency managers. 
+•​Step 4.4 — Generate Uncertainty Map: Create a raster showing the standard deviation of predicted 
+depth across 31 ensemble members. High uncertainty areas require more conservative decision-making. 
+•​Step 4.5 — Compute Time-to-Peak: For each ensemble member, identify the time step at which 
+peak discharge occurs at the watershed outlet. Report the ensemble mean and spread of time-to-peak 
+as a lead time estimate for emergency managers. 
+•​Step 4.6 — Generate EOC Dashboard: Compile all probabilistic products into a multi-panel 
+dashboard suitable for display in a county Emergency Operations Center: median map, probability map, 
+uncertainty map, ensemble hydrograph, alert timeline, and return period comparison. 
+ 
+Deliverables 
+D4.1 — Probabilistic flood map set: Median, 90th percentile, probability, and uncertainty rasters (GeoTIFF) for each 
+forecast event. 
+D4.2 — EOC Dashboard: task4_eoc_dashboard.png — 6-panel visualization suitable for emergency 
+operations center display. 
+D4.3 — Ensemble hydrograph: Time series of predicted discharge for all 31 ensemble members, with median and 
+uncertainty bounds highlighted. 
+D4.4 — Time-to-peak report: Ensemble mean and spread of time-to-peak for each forecast event, formatted for 
+emergency manager briefings. 
+ 
+Task 5: 10-Year Storm Benchmarking and Return Period Comparison 
+Objective: Establish a rigorous comparison framework that allows emergency managers to understand any 
+predicted flood event in terms of its rarity and severity relative to standard engineering design storms (2-year 
+through 100-year return periods). 
+Step-by-Step: 
+•​Step 5.1 — Define Return Period Benchmarks: For the Upper Sonoita Creek Watershed, compile the 
+following benchmarks from authoritative federal sources: (a) NOAA Atlas 14 precipitation frequency 
+ 
+                                                                                   11                                                                                         AFFI 
+
+--- PAGE 12 ---
+estimates for 2yr, 5yr, 10yr, 25yr, 50yr, 100yr at 1hr, 3hr, 6hr, 24hr durations; (b) USGS regional regression 
+equations for peak discharge at the same return periods; (c) Pre-computed HEC-RAS flood maps for each 
+return period (from Task 3, D3.5). 
+•​Step 5.2 — Build Comparison Engine: Implement a comparison module that takes any predicted 
+rainfall, discharge, or flood map and automatically determines: which return period bracket it falls into; 
+how it compares to the 10-year design storm (the standard engineering benchmark); what percentage of 
+the 100- year floodplain is inundated. 
+•​Step 5.3 — Historical Event Validation: Apply the full pipeline to 5 major historical Arizona flood 
+events (1983, 1993, 2006, 2014, 2017). Compare predicted flood maps against post-event surveys, FEMA 
+damage assessments, and USGS peak flow records. Report IoU, CSI, and return period classification 
+accuracy. 
+•​Step 5.4 — Generate Benchmark Comparison Report: For each historical event, produce a 
+side-by-side comparison: AFFI predicted map vs. post-event survey vs. FEMA FIRM 100-year zone. 
+Quantify the improvement in spatial accuracy over static FIRM maps. 
+•​Step 5.5 — Sensitivity Analysis: Test the pipeline's sensitivity to input uncertainty by varying: GFS 
+forecast error (±20%), watershed attribute uncertainty (±10%), DEM resolution (1m vs. 10m). Report 
+how these uncertainties propagate to flood map uncertainty. 
+ 
+Deliverables 
+D5.1 — Return period benchmark database: NOAA Atlas 14 precipitation + USGS discharge + HEC-RAS flood maps 
+for 2yr, 5yr, 10yr, 25yr, 50yr, 100yr for all 25 watersheds. 
+D5.2 — Historical event validation report: AFFI performance on 5 major AZ flood events. IoU > 0.75 vs. post-event 
+surveys. 
+D5.3 — Benchmark comparison figures: Side-by-side maps (AFFI vs. post-event survey vs. FEMA FIRM) for all 5 
+historical events. 
+D5.4 — Sensitivity analysis report: Quantified uncertainty propagation from input errors to flood map errors. 
+D5.5 — Return period classification accuracy table: For all 5 historical events, report whether AFFI correctly 
+classified the event's return period within one bracket (e.g., predicted "25–50 year" for an actual 35-year event). 
+ 
+Task 6: Alert System, Government API, and Decision Dashboard 
+Objective: Integrate all pipeline components into an operational alert system with a secure government API 
+and an EOC-ready decision dashboard, with alert logic defined and controlled by county emergency 
+management agencies. 
+Step-by-Step: 
+•​Step 6.1 — Define Alert Logic: In collaboration with Santa Cruz County OEM, define the alert threshold 
+matrix: which combination of return period classification, probability map values, and time-to-peak 
+triggers each alert level (Advisory / Watch / Warning). Document all decision rules in a formal Alert Logic 
+Specification document. 
+•​Step 6.2 — Build Alert Engine: Implement the alert engine as a Python module that: reads the Task 
+4 probabilistic outputs; applies the Task 6.1 alert logic; generates a structured JSON alert packet; logs 
+all decisions with timestamps and input values for audit purposes. 
+•​Step 6.3 — Build Government API: Develop a RESTful API (FastAPI framework) that: accepts watershed 
+ 
+                                                                                   12                                                                                         AFFI 
+
+--- PAGE 13 ---
+ID and forecast timestamp as inputs; executes the full AFFI pipeline; returns the alert packet and flood 
+map URLs; requires API key authentication for all government users. 
+•​Step 6.4 — Build EOC Dashboard: Develop a web-based dashboard (Streamlit or Dash framework) 
+that: displays the current alert level with color coding; shows the median and 90th percentile flood 
+maps on an interactive map; displays the ensemble hydrograph with uncertainty bounds; shows the 
+return period comparison table; updates automatically every 6 hours with new GFS data. 
+•​Step 6.5 — Operational Testing: Deploy the system for live testing during the Arizona monsoon 
+season. Log all forecast events, alert levels, and (where available) observed outcomes. Compute false 
+alarm rate, missed event rate, and lead time accuracy. 
+•​Step 6.6 — Documentation and Training: Produce complete system documentation: API reference 
+guide, dashboard user manual, alert logic specification, data flow diagram, and maintenance procedures. 
+Conduct training sessions with Santa Cruz County OEM staﬀ. 
+ 
+Deliverables 
+D6.1 — Alert Logic Specification document: Formal definition of all alert thresholds, decision rules, and override 
+procedures. Signed oﬀ by local OEM. 
+D6.2 — Alert engine module: task6_alert_engine.py — validated Python module with full audit logging. 
+D6.3 — Government API: Deployed FastAPI application with authentication, documentation, and test suite. API 
+reference guide included. 
+D6.4 — EOC Dashboard: Deployed Streamlit/Dash application with user manual. Demonstrated to local OEM. 
+D6.5 — Operational test report: Performance metrics from live monsoon season testing: false alarm rate, missed 
+event rate, lead time accuracy. 
+D6.6 — Complete system documentation package: API guide, user manual, alert logic spec, data flow diagram, 
+maintenance procedures, training materials. 
+ 
+6.​Data Sources and Technical Feasibility 
+ 
+All data required for AFFI development and operation, shown in Table 5, are publicly available from federal 
+agencies at no licensing cost. Public data eliminates a major category of project risk and ensures sustainability. 
+6.1​Existing Progress — Technical Feasibility  
+Significant foundational work has already been completed as of early May 2026, demonstrating technical 
+feasibility, capability and commitment: 
+6.1.1​
+A prototype meteorological forecast interface has been developed and tested for the Sonoita 
+Creek watershed (HUC 150503010204), successfully ingesting GFS ensemble data and computing mean 
+areal precipitation in real time. 
+6.1.2​
+Alert threshold logic has been calibrated against NOAA Atlas 14 precipitation frequency data 
+for Santa Cruz County, with Advisory / Watch / Warning levels benchmarked against 10-year, 25-year, 
+and 50-year return periods. 
+6.1.3​
+The complete data pipeline architecture has been designed, documented, and partially 
+implemented. 
+6.1.4​
+A dummy rainfall stress-test framework has been developed and validated against NOAA Atlas 
+14 IDF benchmarks for all return periods from 2-year through 100-year. 
+ 
+                                                                                   13                                                                                         AFFI 
+
+--- PAGE 14 ---
+6.1.5​
+Task 1 deliverables D1.1 through D1.4 are complete and validated. 
+Table 5: Data Sources for AFFI 
+ 
+Data Type 
+Source 
+Resolution 
+Coverage 
+Cost 
+Streamflow 
+records(anchor)  
+USDA ARS — Walnut 
+Gulch Experimental 
+Watershed 
+Sub-hourly 
+0+ years, 89 rain gauges, 12 
+flumes 
+Free 
+Historical precipitation  
+ERA5 via Open-Meteo 
+Archive API  
+0.25°, hourly 
+940–present, global 
+Free 
+Streamflow (pilot 
+watershed)  
+USGS NWIS — Gauge 
+09481740 (Santa Cruz 
+at Tubac) 
+15-min interval 
+1995–present, 30yr record 
+Free 
+Terrain (DEM) 
+USGS 3DEP 
+1-meter lidar 
+Statewide AZ 
+Free 
+Real-time forecast 
+NOAA GFS 
+~13km, 6-hourly 
+31 ensemble members 
+Free 
+High-res forecast 
+NOAA HRRR 
+3km, hourly 
+18 ensemble members 
+Free 
+Radar rainfall 
+NOAA MRMS 
+1km, 2-min 
+Real-time, CONUS 
+Free 
+Soil data 
+USDA SSURGO 
+1:24,000 
+Statewide AZ 
+Free 
+Land cover 
+USGS NLCD 
+30m 
+Statewide AZ 
+Free 
+Watershed attributes 
+USGS GAGES-II 
+Per watershed 
+9,322 US watersheds 
+Free 
+Flood benchmarks 
+NOAA Atlas 14 
+Per county 
+All AZ counties 
+Free 
+ 
+ 
+ 
+7.​Validation Plan and Performance Goals 
+ 
+AFFI will be validated against four independent benchmarks before operational deployment. Specific, 
+measurable performance goals (targets) are stated below in Table 6. These targets are based on published 
+standards in the peer- reviewed hydrology literature. 
+Table 6: Performance Goals 
+ 
+Validation Level 
+Method 
+Target 
+Reference Standard 
+In-sample accuracy 
+LSTM tested on held-out years (2001– 
+2006) from 20 training watersheds 
+NSE > 0.75, KGE 
+> 0.70 
+Moriasi et al. 2007 
+Out-of-sample 
+generalization 
+LSTM tested on 5 completely held-out 
+watersheds never seen in training 
+NSE > 0.65 
+Kratzert et al. 2019 
+Historical event 
+validation 
+Full pipeline tested on 5 major AZ flood 
+events (1983, 1993, 2006, 2014, 2017) 
+IoU > 0.75 vs. post- 
+event surveys 
+FEMA post-disaster 
+assessments 
+Speed benchmark 
+Wall-clock time from GFS input to flood 
+map output 
+< 60 seconds 
+Flash flood warning lead 
+time requirement 
+ 
+ 
+ 
+ 
+ 
+                                                                                   14                                                                                         AFFI 
+
+--- PAGE 15 ---
+7.1​Baseline Comparisons 
+AFFI will be compared against three baselines to demonstrate its contribution: 
+•​Baseline 1 — Simple LSTM (no watershed attributes): Proves that physics-guided design adds 
+value over generic AI 
+•​Baseline 2 — HEC-HMS + HEC-RAS (full physics): Proves that AFFI approaches physics-model 
+accuracy at 360× the speed 
+•​Baseline 3 — FEMA static FIRM maps: Proves that dynamic event-based maps outperform static 
+hazard maps for real-time decisions 
+ 
+8.​Transferability to Other Watersheds 
+ 
+ 
+Design Principle: Every component of AFFI was designed from the ground up to be transferable to any watershed 
+in Arizona or the United States. The Upper Sonoita Creek Watershed is the pilot but not the only watershed that 
+could be used. The AFFI architecture is transferable by design. 
+To deploy AFFI for a new watershed, the following watershed-specific inputs must be substituted. All other 
+components (LSTM architecture, U-Net architecture, alert logic framework, API, dashboard) remain 
+unchanged: 
+ 
+Component 
+What Changes Per Watershed 
+Data Source 
+Estimated 
+Eﬀort 
+AOI / Bounding Box 
+Watershed boundary polygon and bounding 
+box coordinates 
+USGS National Map 
+1 hour 
+NOAA Atlas 14 
+Benchmarks 
+County-specific precipitation frequency estimates 
+NOAA Atlas 14 
+2 hours 
+Alert Thresholds 
+Advisory/Watch/Warning rainfall thresholds 
+calibrated to local conditions 
+County OEM + 
+NOAA Atlas 14 
+4 hours 
+DEM 
+1-meter lidar DEM for new watershed domain 
+USGS 3DEP 
+4 hours 
+HEC-RAS Model 
+New 2D hydraulic model for new watershed 
+DEM + NLCD + field 
+survey 
+20–40 hours 
+LSTM Fine-Tuning 
+Optional: fine-tune on local gauge data if 
+available 
+USGS NWIS 
+8 hours 
+U-Net Re-Training 
+Add new HEC-RAS simulations to training set; 
+retrain U-Net 
+HEC-RAS outputs from 
+above 
+10 hours 
+Estimated total eﬀort per new watershed: 40–80 hours, depending on whether local gauge data is available 
+for LSTM fine-tuning. This is the marginal cost of statewide expansion — not the full system development 
+cost. 
+Watersheds where AFFI is immediately applicable without modification: Any Arizona watershed with an 
+available USGS 3DEP lidar DEM and NOAA Atlas 14 county data. For watersheds outside Arizona, the only 
+additional requirement is downloading the relevant NOAA Atlas 14 volume for the applicable state. 
+Statewide Scaling — Transfer to Additional Arizona Watersheds  
+ 
+                                                                                   15                                                                                         AFFI 
+
+--- PAGE 16 ---
+Objective: Deploy the validated AFFI pipeline to additional Arizona watersheds using the transfer learning 
+framework established in Tasks 1-6, demonstrating that the marginal cost of adding a new watershed is 40–80 
+hours of engineering effort, not a full system rebuild. 
+Key steps: 
+●​
+Step 8.1.1 — Watershed Selection: Prioritize AZ watersheds using 4 criteria: (a) USGS 3DEP 1-meter 
+lidar available, (b) NOAA Atlas 14 county data available, (c) flash flood risk to populated area, (d) no 
+existing operational flood warning system. 
+●​
+Step 8.1.2 — Rapid Deployment Protocol: For each new watershed, execute the 8-component checklist 
+from Section 8 (Scalability). Target: full deployment in 40–80 hours per watershed. 
+●​
+Step 8.1.3 — Cross-Watershed Validation: Test whether the Sonoita Creek fine-tuned LSTM (Task 2b) 
+transfers to a new watershed without retraining. Report NSE degradation vs. full fine-tuning. This 
+directly tests generalizability. 
+●​
+Step 8.1.4 — Statewide Dashboard: Extend the Task 6 EOC Dashboard to display alert levels for all 
+deployed watersheds on a single Arizona-wide map.  
+ 
+ 
+ 
+ 
+                                                                                   16                                                                                         AFFI 
+
+--- PAGE 17 ---
+ 
+9.​References (Verified Hyperlinks) 
+ 
+1.​
+Cloke, H. L., & Pappenberger, F. (2009). Ensemble flood forecasting: A review. Journal of Hydrology. 
+https://doi.org/10.1016/ j.jhydrol.2009.06.005 
+2.​
+Federal Emergency Management Agency (FEMA). (2022). Flood Insurance Rate Maps (FIRMs). 
+https://www.fema.gov/flood- maps 
+3.​
+IPCC. (2021). Climate Change 2021: The Physical Science Basis. Sixth Assessment Report. 
+https://www.ipcc.ch/report/ar6/ wg1/ 
+4.​
+Kratzert, F., et al. (2019). Towards learning universal and regional hydrological behaviors via 
+machine learning. Nature Communications. https://doi.org/10.1038/s41467-019-13507-2 
+5.​
+Moriasi, D. N., et al. (2007). Model evaluation guidelines for watershed simulations. 
+Transactions of the ASABE. https:// doi.org/10.13031/2013.23153 
+6.​NOAA Oﬃce of Water Prediction. (2024). National Water Model (NWM) Documentation. 
+https://water.noaa.gov/about/nwm 
+7.​
+NOAA Hydrometeorological Design Studies Center. (2024). Precipitation Frequency Data 
+Server (Atlas 14). https:// hdsc.nws.noaa.gov/hdsc/pfds/ 
+8.​
+Ronneberger, O., et al. (2015). U-Net: Convolutional networks for biomedical image segmentation. 
+MICCAI. https://doi.org/ 10.1007/978-3-319-24574-4_28 
+9.​
+Sit, M., et al. (2020). A comprehensive review of deep learning applications in hydrology. Water 
+Science and Technology. https://doi.org/10.2166/wst.2020.369 
+10.​USGS. (2024). 3D Elevation Program (3DEP) High-Resolution Lidar Data. 
+https://www.usgs.gov/3d-elevation-program 
+11.​
+USGS. (2011). Geospatial Attributes of Gages for Evaluating Streamflow (GAGES-II). 
+https://water.usgs.gov/GIS/metadata/ usgswrd/XML/gagesII_Sept2011.xml 
+12.​
+USGS National Water Information System (NWIS). (2024). Real-time Streamflow Data 
+for Arizona. https:// waterdata.usgs.gov/nwis 
+13.​
+Tellman, B., et al. (2021). Satellite imaging reveals increased proportion of population exposed 
+to floods. Nature. https:// doi.org/10.1038/s41586-021-03695-w 
+14.​Google Research. (2024). Flood Hub Global Flood Forecasting. https://sites.research.google/floods/ 
+15.​
+Multi-Resolution Land Characteristics (MRLC) Consortium. (2021). National Land Cover 
+Database (NLCD). https:// www.mrlc.gov/data 
+16.​Oregon State University. (2024). PRISM Climate Group Precipitation Data. https://prism.oregonstate.edu/ 
+17.​NOAA National Severe Storms Laboratory. (2024). Multi-Radar Multi-Sensor (MRMS) System. 
+https://mrms.nssl.noaa.gov/ 
+18.​
+USDA Natural Resources Conservation Service. (2024). Soil Survey Geographic Database 
+(SSURGO). https:// www.nrcs.usda.gov/resources/data-and-reports/ssurgo 
+ 
+ 
+ 
+ 
+ 
+                                                                                   17                                                                                         AFFI 

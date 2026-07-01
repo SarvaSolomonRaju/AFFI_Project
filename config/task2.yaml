@@ -1,0 +1,61 @@
+# ============================================================================
+# Task 2: Hurdle Model Configuration — Babocomari River (train) + Sonoita Creek (finetune)
+# CHANGED 2026-05-27: swapped Walnut Gulch (fake ARS) -> Babocomari River (real USGS 09471000)
+# ============================================================================
+seed: 42
+device: "auto"
+
+# ============================================================================
+# DATA
+# ============================================================================
+data:
+  base_basin:
+    name: "babocomari_river"
+    usgs_id: "09471000"
+    huc: "15050202"
+    area_km2: 979.0          # ~378 sq-mi drainage area from USGS site page
+    lat: 31.6031
+    lon: -110.2997
+
+  finetune_basin:
+    name: "sonoita_creek"
+    usgs_id: "09481500"
+    huc: "15050301"
+    area_km2: 540.0
+    lat: 31.5384
+    lon: -110.7512
+
+  start_date: "1990-01-01"
+  end_date:   "2024-12-31"
+  train_end:  "2015-12-31"
+  val_end:    "2019-12-31"
+
+# ============================================================================
+# MODEL — single block, read by 03_train_hurdle.py
+# ============================================================================
+model:
+  lookback: 30
+  hidden_size: 128
+  num_layers: 2
+  dropout: 0.3
+  lr: 0.0005
+  batch_size: 128
+  epochs: 150
+  early_stop_patience: 20
+  cls_threshold: 0.15
+
+# ============================================================================
+# LOGGING & OUTPUTS
+# ============================================================================
+logging:
+  level: "INFO"
+  to_file: true
+  log_dir: "outputs/logs"
+
+checkpoints:
+  save_dir: "models"
+  save_best_only: true
+
+evaluation:
+  figures_dir: "outputs/figures"
+  metrics: ["nse", "kge", "pbias", "rmse", "mae"]

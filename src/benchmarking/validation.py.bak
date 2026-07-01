@@ -1,0 +1,100 @@
+"""Pipeline-level validation checks (sanity + physical-bounds)."""
+from __future__ import annotations
+from typing import List
+
+
+def pipeline_validation(library, alert_packet: dict,
+                        max_reasonable_q_cms: float = 1000.0,
+                        max_reasonable_depth_m: float = 10.0) -> dict:
+    """Run a battery of consistency checks across the end-to-end pipeline."""
+    checks: List[dict] = []
+
+    # Library checks
+    n = library.n_maps
+    checks.append({
+        "name": "library_has_maps",
+        "passed": bool(n >= 5),
+        "detail": f"{n} maps available",
+    })
+    checks.append({
+        "name": "library_q_monotonic",
+        "passed": bool(all(library.discharges_cms[i] <= library.discharges_cms[i + 1]
+                           for i in range(n - 1))),
+        "detail": "discharges_cms sorted ascending",
+    })
+    # Depth non-negative everywhere
+    nonneg = bool((library.depth_maps >= 0).all())
+    checks.append({
+        "name": "depth_nonnegative",
+        "passed": nonneg,
+        "detail": "all depth pixels >= 0",
+    })
+    # Depth within physical bounds
+    max_d = float(library.depth_maps.max())
+    checks.append({
+        "name": "depth_within_physical_bounds",
+        "passed": bool(max_d <= max_reasonable_depth_m),
+        "detail": f"max depth in library = {max_d:.3f} m",
+    })
+
+    # Alert packet checks
+    days = alert_packet.get("forecast_days", [])
+    checks.append({
+        "name": "alert_packet_has_forecast_days",
+        "passed": bool(len(days) >= 1),
+        "detail": f"{len(days)} forecast day(s)",
+    })
+    pct_ok = all(
+        d.get("p10_24hr", 0) <= d.get("p50_24hr", 0) <= d.get("p90_24hr", 0)
+        for d in days
+    )
+    checks.append({
+        "name": "rainfall_percentiles_ordered",
+        "passed": bool(pct_ok),
+        "detail": "P10 <= P50 <= P90 on all days",
+    })
+
+    # Library covers typical forecast range
+    max_p90 = max((d.get("p90_24hr", 0.0) for d in days), default=0.0)
+    checks.append({
+        "name": "library_covers_typical_forecast",
+        "passed": bool(library.q_max_cms >= 5.0),
+        "detail": f"q_max = {library.q_max_cms:.1f} cms, max forecast P90 rain = {max_p90:.2f}\"",
+    })
+
+    n_pass = sum(1 for c in checks if c["passed"])
+    return {
+        "n_checks": len(checks),
+        "n_passed": n_pass,
+        "n_failed": len(checks) - n_pass,
+        "all_passed": n_pass == len(checks),
+        "checks": checks,
+    }
+
+
+def score_report(validation: dict, event_replays: list,
+                 return_table: list) -> dict:
+    """Compose final benchmark report."""
+    if event_replays:
+        residuals = [e["depth_residual_m"] for e in event_replays
+                     if e.get("depth_residual_m") is not None]
+        if residuals:
+            mae = sum(abs(r) for r in residuals) / len(residuals)
+            bias = sum(residuals) / len(residuals)
+        else:
+            mae = None
+            bias = None
+    else:
+        mae = None
+        bias = None
+
+    return {
+        "validation": validation,
+        "historical_events": event_replays,
+        "return_period_table": return_table,
+        "scores": {
+            "depth_mae_m": mae,
+            "depth_bias_m": bias,
+            "n_events_replayed": len(event_replays),
+        },
+    }

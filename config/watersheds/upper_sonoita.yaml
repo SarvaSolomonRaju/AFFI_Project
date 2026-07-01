@@ -1,0 +1,141 @@
+# ============================================================
+# WATERSHED CONFIGURATION — Upper Sonoita Creek
+# ============================================================
+# To use this system for a DIFFERENT watershed:
+#   1. Copy this file
+#   2. Rename it (e.g., rillito_creek.yaml)
+#   3. Change the values below
+#   4. Update settings.py to point to your new file
+#   That's it. The entire system adapts automatically.
+# ============================================================
+
+watershed:
+  name: "Upper Sonoita Creek"
+  huc: "15050301"
+  state: "AZ"
+  county: "Santa Cruz"
+  area_km2: 510
+
+  # Pour point = where water exits the watershed
+  # This is where you'd put a stream gauge
+  pour_point:
+    lat: 31.5384
+    lon: -110.7512
+    description: "Hwy 82 Bridge, Patagonia AZ"
+
+  # Bounding box = rectangle that contains the entire watershed
+  # Used to create grid points for rainfall measurement
+  bbox:
+    north: 31.85
+    south: 31.47
+    east: -110.50
+    west: -110.90
+
+  # USGS stream gauge ID (for downloading historical flow data in Task 2)
+  usgs_gauge: "09481500"
+
+# ============================================================
+# IDF BENCHMARKS — from NOAA Atlas 14 Volume 1
+# ============================================================
+# IDF = Intensity-Duration-Frequency
+# These numbers answer: "How much rain falls in a storm that
+# happens once every N years?"
+#
+# Source: https://hdsc.nws.noaa.gov/pfds/
+# Location: Santa Cruz County, AZ (Patagonia area)
+#
+# HOW TO GET THESE FOR A DIFFERENT LOCATION:
+#   1. Go to https://hdsc.nws.noaa.gov/pfds/
+#   2. Click on your state
+#   3. Click on your location on the map
+#   4. Read the "Precipitation Frequency Estimates" table
+#   5. Copy the values for each duration and return period
+# ============================================================
+idf_benchmarks:
+  # Return period (years) → {duration: rainfall in inches}
+  2yr:
+    1hr: 0.90
+    3hr: 1.15
+    6hr: 1.40
+    24hr: 1.90
+  5yr:
+    1hr: 1.15
+    3hr: 1.50
+    6hr: 1.80
+    24hr: 2.50
+  10yr:
+    1hr: 1.40
+    3hr: 1.85
+    6hr: 2.20
+    24hr: 3.10
+  25yr:
+    1hr: 1.75
+    3hr: 2.30
+    6hr: 2.75
+    24hr: 3.90
+  50yr:
+    1hr: 2.05
+    3hr: 2.70
+    6hr: 3.20
+    24hr: 4.60
+  100yr:
+    1hr: 2.40
+    3hr: 3.10
+    6hr: 3.70
+    24hr: 5.40
+
+# ============================================================
+# ALERT THRESHOLDS
+# ============================================================
+# These define when to issue alerts.
+# They are expressed as FRACTIONS of the 10-year storm.
+#
+# WHY fractions instead of fixed numbers?
+#   Because fractions are TRANSFERABLE. If you move to Tucson
+#   (wetter), the 10-year benchmark is higher, so thresholds
+#   automatically scale up. Move to Yuma (drier), they scale down.
+#
+# WHERE DO THESE FRACTIONS COME FROM?
+#   NWS (National Weather Service) uses similar probability-based
+#   thresholds. The specific values (0.25, 0.40, 0.65) are
+#   calibrated for semi-arid flashy watersheds in the Southwest.
+#   Reference: NWS WFO Tucson operational guidelines
+# ============================================================
+alert_thresholds:
+  advisory:
+    fraction_of_10yr_24hr: 0.25    # 25% of 10-year 24hr storm
+    fraction_of_10yr_1hr: 0.18     # 18% of 10-year 1hr storm
+    probability_trigger_pct: 20    # Issue if ≥20% of ensemble exceeds
+  watch:
+    fraction_of_10yr_24hr: 0.40
+    fraction_of_10yr_1hr: 0.36
+    probability_trigger_pct: 30
+  warning:
+    fraction_of_10yr_24hr: 0.65
+    fraction_of_10yr_1hr: 0.71
+    probability_trigger_pct: 30
+
+# ============================================================
+# GRID CONFIGURATION
+# ============================================================
+# How many points to sample across the watershed for rainfall
+# More points = more accurate but slower API calls
+grid:
+  n_points: 5
+  # Weights: center gets most because it's near the outlet
+  # In a research paper, you'd use Thiessen polygons instead
+  center_weight: 0.30
+  cardinal_weight: 0.20   # north, south
+  diagonal_weight: 0.15   # east, west
+
+# ============================================================
+# API CONFIGURATION
+# ============================================================
+api:
+  ensemble_url: "https://ensemble-api.open-meteo.com/v1/ensemble"
+  model: "gfs_seamless"
+  forecast_days: 7
+  timeout_seconds: 30
+  max_retries: 3
+  retry_delay_seconds: 5
+  timezone: "America/Phoenix"
