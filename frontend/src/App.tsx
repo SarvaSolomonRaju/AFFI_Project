@@ -7,6 +7,7 @@ import { SimulationSlider } from "./components/SimulationSlider";
 import { ActionPanel } from "./components/ActionPanel";
 import { BulletinPanel } from "./components/BulletinPanel";
 import { HistoricalComparison } from "./components/HistoricalComparison";
+import { DecisionCockpit } from "./components/DecisionCockpit";
 
 function App() {
   // Lives here, not inside FloodMap or SimulationSlider, because both
@@ -19,11 +20,13 @@ function App() {
       <h1>FloodAI — Upper Sonoita Creek</h1>
 
       {/* LIVE section — ordered for a flood manager: alert level first,
+          then how much time is actually available (Decision Cockpit),
           then what to DO about it, then situational awareness (map),
           then how to communicate it, then the trend ahead. Everything
           here reflects today's real forecast regardless of what the
           simulation slider below is set to. */}
       <AlertBanner />
+      <DecisionCockpit />
       <ActionPanel />
       <FloodMap overlayUrl={overlayUrl} isSimulation={isSimulation} />
       <BulletinPanel />

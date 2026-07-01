@@ -74,6 +74,12 @@ export interface ActionPlan {
   legal_note: string;
 }
 
+export interface DecisionCockpit {
+  time_to_peak_hours: { p10: number; p50: number; p90: number; method: string };
+  life_safety: { prob_gt_0_5m_max_pct: number; wet_pixels_above_0_5m: number };
+  uncertainty_m: { max: number; mean: number };
+}
+
 export interface HistoricalEvent {
   name: string;
   date: string;

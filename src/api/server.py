@@ -23,6 +23,7 @@ from src.api.routes_map import router as map_router
 from src.api.routes_action import router as action_router
 from src.api.routes_bulletin import router as bulletin_router
 from src.api.routes_historical import router as historical_router
+from src.api.routes_cockpit import router as cockpit_router
 from common.logging_setup import configure_logging, get_logger
 
 configure_logging(level="INFO", to_file=True, log_dir=ROOT / "outputs" / "logs")
@@ -61,6 +62,7 @@ app.include_router(map_router)
 app.include_router(action_router)
 app.include_router(bulletin_router)
 app.include_router(historical_router)
+app.include_router(cockpit_router)
 
 
 class HealthResponse(BaseModel):
