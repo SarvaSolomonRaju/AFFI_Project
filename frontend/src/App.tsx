@@ -15,9 +15,28 @@ function App() {
   const [overlayUrl, setOverlayUrl] = useState<string | undefined>(undefined);
   const isSimulation = overlayUrl !== undefined;
 
+  // Every LIVE component polls the backend every 60s on its own (see
+  // useLiveData) — this is purely for the "Refresh now" button.
+  // Bumping it forces all of them to refetch immediately instead of
+  // waiting for their next interval tick; a manager watching an active
+  // event shouldn't have to wait up to a minute after a page reload
+  // just to force a check.
+  const [refreshSignal, setRefreshSignal] = useState(0);
+
   return (
     <div style={{ padding: 24, maxWidth: 1100, margin: "0 auto" }}>
-      <h1>FloodAI — Upper Sonoita Creek</h1>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 8 }}>
+        <h1 style={{ margin: 0 }}>FloodAI — Upper Sonoita Creek</h1>
+        <button
+          onClick={() => setRefreshSignal((n) => n + 1)}
+          style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid var(--border)", cursor: "pointer", background: "var(--bg-card)", color: "var(--text-primary)" }}
+        >
+          Refresh now
+        </button>
+      </div>
+      <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginTop: 4 }}>
+        Auto-refreshes every 60s — no manual reload needed during an active event.
+      </p>
 
       {/* LIVE section — ordered for a flood manager: alert level first,
           then how much time is actually available (Decision Cockpit),
@@ -25,13 +44,13 @@ function App() {
           then how to communicate it, then the trend ahead. Everything
           here reflects today's real forecast regardless of what the
           simulation slider below is set to. */}
-      <AlertBanner />
-      <DecisionCockpit />
-      <ActionPanel />
+      <AlertBanner refreshSignal={refreshSignal} />
+      <DecisionCockpit refreshSignal={refreshSignal} />
+      <ActionPanel refreshSignal={refreshSignal} />
       <FloodMap overlayUrl={overlayUrl} isSimulation={isSimulation} />
-      <BulletinPanel />
-      <HistoricalComparison />
-      <ForecastTable />
+      <BulletinPanel refreshSignal={refreshSignal} />
+      <HistoricalComparison refreshSignal={refreshSignal} />
+      <ForecastTable refreshSignal={refreshSignal} />
 
       {/* WHAT-IF section — deliberately separated and visually distinct
           so it can't be mistaken for live data. Only the map overlay

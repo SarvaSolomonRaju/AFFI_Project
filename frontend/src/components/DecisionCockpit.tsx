@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { apiGet } from "../api/client";
+import { useLiveData } from "../hooks/useLiveData";
 import type { DecisionCockpit as DecisionCockpitData } from "../types/api";
 
 function Stat({ label, value, sub }: { label: string; value: string; sub?: string }) {
@@ -12,15 +11,16 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   );
 }
 
-export function DecisionCockpit() {
-  const [data, setData] = useState<DecisionCockpitData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface DecisionCockpitProps {
+  refreshSignal?: number;
+}
 
-  useEffect(() => {
-    apiGet<DecisionCockpitData>("/api/v1/decision-cockpit")
-      .then(setData)
-      .catch((err) => setError(String(err)));
-  }, []);
+export function DecisionCockpit({ refreshSignal }: DecisionCockpitProps) {
+  const { data, error } = useLiveData<DecisionCockpitData>(
+    "/api/v1/decision-cockpit",
+    60_000,
+    refreshSignal,
+  );
 
   if (error) return <p>Could not load decision cockpit: {error}</p>;
   if (!data) return <p>Loading decision cockpit…</p>;

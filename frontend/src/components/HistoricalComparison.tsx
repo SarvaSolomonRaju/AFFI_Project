@@ -1,16 +1,16 @@
-import { useEffect, useState } from "react";
-import { apiGet } from "../api/client";
+import { useLiveData } from "../hooks/useLiveData";
 import type { HistoricalComparison as HistoricalComparisonData } from "../types/api";
 
-export function HistoricalComparison() {
-  const [data, setData] = useState<HistoricalComparisonData | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface HistoricalComparisonProps {
+  refreshSignal?: number;
+}
 
-  useEffect(() => {
-    apiGet<HistoricalComparisonData>("/api/v1/historical-comparison")
-      .then(setData)
-      .catch((err) => setError(String(err)));
-  }, []);
+export function HistoricalComparison({ refreshSignal }: HistoricalComparisonProps) {
+  const { data, error } = useLiveData<HistoricalComparisonData>(
+    "/api/v1/historical-comparison",
+    60_000,
+    refreshSignal,
+  );
 
   if (error) return <p>Could not load historical comparison: {error}</p>;
   if (!data) return <p>Loading historical comparison…</p>;

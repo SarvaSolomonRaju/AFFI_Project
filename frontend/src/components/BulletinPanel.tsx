@@ -1,20 +1,21 @@
-import { useEffect, useRef, useState } from "react";
-import { apiGet } from "../api/client";
+import { useRef, useState } from "react";
+import { useLiveData } from "../hooks/useLiveData";
 import type { Bulletin } from "../types/api";
 
 type CopyStatus = "idle" | "copied" | "blocked";
 
-export function BulletinPanel() {
-  const [bulletin, setBulletin] = useState<Bulletin | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface BulletinPanelProps {
+  refreshSignal?: number;
+}
+
+export function BulletinPanel({ refreshSignal }: BulletinPanelProps) {
+  const { data: bulletin, error } = useLiveData<Bulletin>(
+    "/api/v1/bulletin",
+    60_000,
+    refreshSignal,
+  );
   const [copyStatus, setCopyStatus] = useState<CopyStatus>("idle");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    apiGet<Bulletin>("/api/v1/bulletin")
-      .then(setBulletin)
-      .catch((err) => setError(String(err)));
-  }, []);
 
   async function copy() {
     if (!bulletin) return;

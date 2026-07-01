@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import { apiGet } from "../api/client";
-import type { ForecastDaysResponse, ForecastDay } from "../types/api";
+import { useLiveData } from "../hooks/useLiveData";
+import type { ForecastDaysResponse } from "../types/api";
 
 // Small colored pill for the alert level — reuses the same class names
 // as AlertBanner's alert-green/advisory/watch/warning, just smaller.
@@ -15,15 +14,17 @@ function AlertPill({ level }: { level: string }) {
   );
 }
 
-export function ForecastTable() {
-  const [days, setDays] = useState<ForecastDay[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface ForecastTableProps {
+  refreshSignal?: number;
+}
 
-  useEffect(() => {
-    apiGet<ForecastDaysResponse>("/api/v1/forecast/days")
-      .then((res) => setDays(res.forecast_days))
-      .catch((err) => setError(String(err)));
-  }, []);
+export function ForecastTable({ refreshSignal }: ForecastTableProps) {
+  const { data, error } = useLiveData<ForecastDaysResponse>(
+    "/api/v1/forecast/days",
+    60_000,
+    refreshSignal,
+  );
+  const days = data?.forecast_days ?? null;
 
   if (error) return <p>Could not load forecast: {error}</p>;
   if (!days) return <p>Loading 7-day forecast…</p>;

@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { apiGet } from "../api/client";
+import { useLiveData } from "../hooks/useLiveData";
 import type { ActionPlan } from "../types/api";
 
 function ActionList({ title, items, totalCount }: { title: string; items: { name: string; max_depth_m: number }[]; totalCount: number }) {
@@ -29,15 +28,16 @@ function ActionList({ title, items, totalCount }: { title: string; items: { name
   );
 }
 
-export function ActionPanel() {
-  const [plan, setPlan] = useState<ActionPlan | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface ActionPanelProps {
+  refreshSignal?: number;
+}
 
-  useEffect(() => {
-    apiGet<ActionPlan>("/api/v1/action-plan")
-      .then(setPlan)
-      .catch((err) => setError(String(err)));
-  }, []);
+export function ActionPanel({ refreshSignal }: ActionPanelProps) {
+  const { data: plan, error } = useLiveData<ActionPlan>(
+    "/api/v1/action-plan",
+    60_000,
+    refreshSignal,
+  );
 
   if (error) return <p>Could not load action plan: {error}</p>;
   if (!plan) return <p>Loading action plan…</p>;

@@ -1,5 +1,4 @@
-import { useEffect, useState } from "react";
-import { apiGet } from "../api/client";
+import { useLiveData } from "../hooks/useLiveData";
 import type { CurrentAlert } from "../types/api";
 
 // Maps an alert level to the CSS class defined in theme.css.
@@ -7,20 +6,16 @@ function alertClass(level: string): string {
   return `alert-banner alert-${level.toLowerCase()}`;
 }
 
-export function AlertBanner() {
-  // alert: what we got back from the API, once it arrives (starts as null)
-  // error: set if the fetch failed (e.g. backend not running)
-  const [alert, setAlert] = useState<CurrentAlert | null>(null);
-  const [error, setError] = useState<string | null>(null);
+interface AlertBannerProps {
+  refreshSignal?: number;
+}
 
-  // Runs once when the component first appears on screen ([] = "no
-  // dependencies, don't re-run"). This is where the real network call
-  // to your FastAPI backend happens.
-  useEffect(() => {
-    apiGet<CurrentAlert>("/api/v1/alert/current")
-      .then(setAlert)
-      .catch((err) => setError(String(err)));
-  }, []);
+export function AlertBanner({ refreshSignal }: AlertBannerProps) {
+  const { data: alert, error, lastUpdated } = useLiveData<CurrentAlert>(
+    "/api/v1/alert/current",
+    60_000,
+    refreshSignal,
+  );
 
   if (error) {
     return (
@@ -42,6 +37,7 @@ export function AlertBanner() {
       <div style={{ fontSize: "0.85rem", fontWeight: 400, marginTop: 4 }}>
         7-day max: {alert.max_7day_alert} · generated {alert.generated_utc} ·
         source: {alert.data_source}
+        {lastUpdated && <> · dashboard refreshed {lastUpdated.toLocaleTimeString()}</>}
       </div>
     </div>
   );
