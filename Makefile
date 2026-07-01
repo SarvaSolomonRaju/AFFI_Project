@@ -8,7 +8,7 @@ PYTEST  ?= pytest
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install data local-assets infrastructure forecast map dashboard all test lint clean veryclean docker-build docker-run serve-api
+.PHONY: help install data local-assets infrastructure forecast map dashboard all test lint clean veryclean docker-build docker-run serve-api frontend-install frontend-test frontend-test-e2e
 
 help:
 	@echo "FloodAI - Real-data flood forecasting pipeline"
@@ -57,6 +57,17 @@ all:
 
 test:
 	$(PYTEST) tests/ -q
+	$(MAKE) frontend-test
+
+frontend-install:
+	cd frontend && npm install
+
+frontend-test:
+	cd frontend && npm run test
+
+frontend-test-e2e:
+	@echo "Requires 'make serve-api' running separately (AFFI_AUTH_DISABLED=true)"
+	cd frontend && npm run test:e2e
 
 lint:
 	$(PY) -m pyflakes src/ scripts/ || true
