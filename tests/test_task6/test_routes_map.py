@@ -33,6 +33,13 @@ class TestMapConfig:
         ]
         assert data["available_rasters"] == ["fema-100yr", "today-likely", "today-poi"]
 
+    def test_has_raster_bounds_for_frontend_overlay_placement(self):
+        data = client.get("/api/v1/map/config").json()
+        bounds = data["raster_bounds"]["fema-100yr"]
+        assert set(bounds.keys()) == {"west", "south", "east", "north"}
+        assert bounds["west"] < bounds["east"]
+        assert bounds["south"] < bounds["north"]
+
 
 class TestMapLayers:
     @pytest.mark.parametrize(

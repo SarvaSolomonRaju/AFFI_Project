@@ -144,6 +144,16 @@ def build_map(out_html: Path = OUT / "dashboard_map.html") -> Path:
         array_to_png(likely_wgs, "Blues", 0.05, max(today_max_depth, 0.5), today_likely_png)
         array_to_png(poi_wgs, "YlOrRd", 0.01, max(today_max_poi, 0.05), today_poi_png)
 
+    # 2.5 Persist WGS84 bounds so other consumers (the API, the React
+    # frontend) can place these same PNGs on their own maps without
+    # redoing the rasterio reprojection.
+    bounds_manifest = {"fema-100yr": {"west": ref_bounds[0], "south": ref_bounds[1], "east": ref_bounds[2], "north": ref_bounds[3]}}
+    if today_likely_bounds is not None:
+        bounds_manifest["today-likely"] = {"west": today_likely_bounds[0], "south": today_likely_bounds[1], "east": today_likely_bounds[2], "north": today_likely_bounds[3]}
+    if today_poi_bounds is not None:
+        bounds_manifest["today-poi"] = {"west": today_poi_bounds[0], "south": today_poi_bounds[1], "east": today_poi_bounds[2], "north": today_poi_bounds[3]}
+    (OUT / "_map_layer_bounds.json").write_text(json.dumps(bounds_manifest, indent=2))
+
     # 3. Base Folium map
     center = [(ref_bounds[1] + ref_bounds[3]) / 2, (ref_bounds[0] + ref_bounds[2]) / 2]
     m = folium.Map(location=center, zoom_start=13, control_scale=True, tiles=None)

@@ -55,8 +55,13 @@ _RASTER_LAYERS: dict[str, Path] = {
 @router.get("/map/config")
 async def get_map_config(user: dict = Depends(validate_api_key)):
     from config.settings import load_settings
+    import json as _json
 
     s = load_settings()
+
+    bounds_path = OUTPUTS_DIR / "_map_layer_bounds.json"
+    raster_bounds = _json.loads(bounds_path.read_text()) if bounds_path.exists() else {}
+
     return {
         "bbox": {
             "north": s.watershed.bbox.north,
@@ -80,6 +85,7 @@ async def get_map_config(user: dict = Depends(validate_api_key)):
         ],
         "available_layers": list(_GEOJSON_LAYERS.keys()),
         "available_rasters": list(_RASTER_LAYERS.keys()),
+        "raster_bounds": raster_bounds,
     }
 
 

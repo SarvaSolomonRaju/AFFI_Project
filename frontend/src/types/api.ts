@@ -37,3 +37,19 @@ export interface ForecastDaysResponse {
   generated_utc: string;
   forecast_days: ForecastDay[];
 }
+
+export interface RasterBounds {
+  west: number;
+  south: number;
+  east: number;
+  north: number;
+}
+
+export interface MapConfig {
+  bbox: { north: number; south: number; east: number; west: number };
+  center: { lat: number; lon: number };
+  reference_markers: { lat: number; lon: number; label: string }[];
+  available_layers: string[];
+  available_rasters: string[];
+  raster_bounds: Record<string, RasterBounds>;
+}
