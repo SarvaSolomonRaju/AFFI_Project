@@ -33,6 +33,9 @@ test("full page loads with live data from the backend", async ({ page }) => {
   await expect(bulletinBox).toHaveValue(/\* WHAT:/);
   await expect(bulletinBox).toHaveValue(/\* WHERE:/);
 
+  // Historical comparison: a real past event, not a placeholder
+  await expect(page.getByText(/Closest historical match/)).toBeVisible({ timeout: 10_000 });
+
   // Forecast table has at least one real date row
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.locator("tbody tr")).toHaveCount(7);

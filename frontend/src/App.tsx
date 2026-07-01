@@ -6,6 +6,7 @@ import { FloodMap } from "./components/FloodMap";
 import { SimulationSlider } from "./components/SimulationSlider";
 import { ActionPanel } from "./components/ActionPanel";
 import { BulletinPanel } from "./components/BulletinPanel";
+import { HistoricalComparison } from "./components/HistoricalComparison";
 
 function App() {
   // Lives here, not inside FloodMap or SimulationSlider, because both
@@ -26,6 +27,7 @@ function App() {
       <ActionPanel />
       <FloodMap overlayUrl={overlayUrl} isSimulation={isSimulation} />
       <BulletinPanel />
+      <HistoricalComparison />
       <ForecastTable />
 
       {/* WHAT-IF section — deliberately separated and visually distinct

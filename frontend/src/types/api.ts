@@ -74,6 +74,26 @@ export interface ActionPlan {
   legal_note: string;
 }
 
+export interface HistoricalEvent {
+  name: string;
+  date: string;
+  season: string;
+  rainfall_24hr_in: number;
+  peak_q_cms: number;
+  peak_stage_m: number;
+  approx_return_period_yr: number;
+  source: string;
+  notes: string;
+}
+
+export interface HistoricalComparison {
+  today_discharge_cms: number;
+  closest_event: HistoricalEvent;
+  delta_pct_vs_closest_event: number | null;
+  catalog_size: number;
+  catalog_source: string;
+}
+
 export interface Bulletin {
   alert_level: AlertLevel;
   text: string;
