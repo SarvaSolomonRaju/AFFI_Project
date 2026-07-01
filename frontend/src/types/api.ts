@@ -19,3 +19,21 @@ export interface CurrentAlert {
   watershed: Record<string, unknown>;
   data_source: string;
 }
+
+export interface ForecastDay {
+  day: number;
+  date: string;
+  p10_24hr: number;
+  p50_24hr: number;
+  p90_24hr: number;
+  alert_level: AlertLevel;
+  return_period: {
+    nearest_return_period: string;
+    severity_class: string;
+  };
+}
+
+export interface ForecastDaysResponse {
+  generated_utc: string;
+  forecast_days: ForecastDay[];
+}

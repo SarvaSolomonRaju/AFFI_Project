@@ -49,3 +49,8 @@ body {
   background: linear-gradient(135deg, #c0392b, #e74c3c);
   color: white;
 }
+
+table td,
+table th {
+  padding: 6px 10px;
+}
