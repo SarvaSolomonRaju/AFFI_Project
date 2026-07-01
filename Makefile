@@ -8,7 +8,7 @@ PYTEST  ?= pytest
 
 .DEFAULT_GOAL := help
 
-.PHONY: help install data local-assets infrastructure forecast map dashboard all test lint clean veryclean docker-build docker-run
+.PHONY: help install data local-assets infrastructure forecast map dashboard all test lint clean veryclean docker-build docker-run serve-api
 
 help:
 	@echo "FloodAI - Real-data flood forecasting pipeline"
@@ -19,6 +19,7 @@ help:
 	@echo "  make forecast    - run Task 4 (probabilistic) and Task 5 (benchmarking)"
 	@echo "  make map         - rebuild interactive Leaflet/Folium map"
 	@echo "  make dashboard   - rebuild full HTML dashboard"
+	@echo "  make serve-api   - run the FastAPI backend on http://127.0.0.1:8000 (docs at /docs)"
 	@echo "  make all         - full end-to-end pipeline (data + forecast + map)"
 	@echo "  make test        - run pytest (102 tests expected to pass)"
 	@echo "  make clean       - remove outputs/ and pycache"
@@ -47,6 +48,9 @@ map:
 	$(PY) scripts/build_dashboard.py
 
 dashboard: map
+
+serve-api:
+	uvicorn src.api.server:app --host 127.0.0.1 --port 8000 --reload
 
 all:
 	$(PY) scripts/00_run_all.py

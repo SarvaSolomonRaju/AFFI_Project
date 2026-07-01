@@ -41,6 +41,15 @@ Decision made 2026-06-30: rebuild the delivery layer as a real
 frontend (calling the FastAPI backend live) rather than the static-HTML
 generator. Core hydrology/ML code (`src/hydrology`, `src/hydraulics`,
 `src/probabilistic`, `src/benchmarking`) is not being rewritten — it's sound.
+The static `dashboard.html` generator stays as an offline fallback
+(no server required) — not being retired.
+
+**2026-06-30, backend phase done:** `src/api/server.py` now serves map
+layers (`/api/v1/map/*`) and simulation scenarios (`/api/v1/simulation/*`)
+— data the static dashboard/Folium map previously only read from disk
+directly. Run it with `make serve-api` (docs at `/docs`). CORS now reads
+`AFFI_CORS_ORIGINS` instead of a wildcard. Frontend (React) work is
+planned separately, not started yet.
 
 ## Tests
 

@@ -168,96 +168,52 @@ def _embed_image(path: Path, alt: str, cls: str = "result-img") -> str:
 
 def generate_sim_pngs() -> dict:
     """Render depth rasters for T=5,10,25,50,100,200 yr to PNG at build time.
-    Returns {T_int: {"b64": "data:image/png;base64,...", "Q_cms": ..., "max_depth_m": ..., "wet_area_km2": ...}}
+
+    Delegates to src.probabilistic.scenarios.build_scenario_library (the
+    shared source of truth also used by the live API's /api/v1/simulation/*
+    routes). Returns {T_int: {"b64": "data:image/png;base64,...", "Q_cms": ...,
+    "max_depth_m": ..., "wet_area_km2": ...}}.
     """
     try:
-        import rasterio
-        import numpy as np
-        import matplotlib.cm as _cm
-        import matplotlib.colors as _mcolors
-        from PIL import Image as _Image
-        from rasterio.warp import reproject as _reproject, Resampling, calculate_default_transform
+        from probabilistic.scenarios import build_scenario_library
     except ImportError:
         return {}
 
-    manifest_path = DATA / "flood_library_real" / "manifest.json"
-    if not manifest_path.exists():
-        return {}
-    manifest = json.loads(manifest_path.read_text())
-    rp_stats = manifest.get("return_periods", {})
-    files = manifest.get("files", {})
-
-    SIM_DIR = OUTPUTS / "sim"
-    SIM_DIR.mkdir(exist_ok=True)
-
+    library = build_scenario_library()
     result = {}
-    for T in [5, 10, 25, 50, 100, 200]:
-        tif_name = files.get(str(T))
-        if not tif_name:
-            continue
-        tif_path = DATA / "flood_library_real" / tif_name
-        if not tif_path.exists():
-            continue
-        stats = rp_stats.get(str(T), {})
-        try:
-            with rasterio.open(tif_path) as src:
-                arr = np.nan_to_num(src.read(1), nan=0.0).astype(np.float32)
-                src_crs, src_transform = src.crs, src.transform
-                h, w = arr.shape
-                left = src_transform.c
-                top = src_transform.f
-                right = left + w * src_transform.a
-                bottom = top + h * src_transform.e
-                dst_transform, dst_w, dst_h = calculate_default_transform(
-                    src_crs, "EPSG:4326", w, h, left, bottom, right, top
-                )
-                dst = np.zeros((dst_h, dst_w), dtype=np.float32)
-                _reproject(
-                    source=arr, destination=dst,
-                    src_transform=src_transform, src_crs=src_crs,
-                    dst_transform=dst_transform, dst_crs="EPSG:4326",
-                    resampling=Resampling.bilinear,
-                    src_nodata=0.0, dst_nodata=0.0,
-                )
-            cmap_fn = _cm.get_cmap("Blues")
-            norm = _mcolors.Normalize(vmin=0, vmax=12, clip=True)
-            rgba = (cmap_fn(norm(dst)) * 255).astype(np.uint8)
-            rgba[..., 3] = np.where(dst > 0.05, 200, 0).astype(np.uint8)
-            out_png = SIM_DIR / f"depth_T{T:03d}yr.png"
-            _Image.fromarray(rgba, "RGBA").save(out_png)
-            b64 = img_to_base64(out_png)
-        except Exception:
-            b64 = ""
+    for T, entry in library.items():
+        png_path = entry.get("png_path")
         result[T] = {
-            "b64": b64,
-            "Q_cms": round(stats.get("Q_cms", 0)),
-            "max_depth_m": round(stats.get("max_depth_m", 0.0), 2),
-            "wet_area_km2": round(stats.get("wet_area_km2", 0.0), 4),
+            "b64": img_to_base64(png_path) if png_path else "",
+            "Q_cms": entry["Q_cms"],
+            "max_depth_m": entry["max_depth_m"],
+            "wet_area_km2": entry["wet_area_km2"],
+            "roads_at_risk": entry.get("roads_at_risk"),
+            "infra_at_risk": entry.get("infra_at_risk"),
+            "alert_level": entry.get("alert_level"),
+            "severity": entry.get("severity"),
+            "probability": entry.get("probability"),
         }
     return result
 
 
 def build_sim_data_js(sim_data: dict) -> str:
-    defaults = {
-        5:   {"roads": 82,  "infra": 4,  "alert": "YELLOW", "severity": "Minor",    "prob": "20%"},
-        10:  {"roads": 105, "infra": 7,  "alert": "ORANGE", "severity": "Moderate", "prob": "10%"},
-        25:  {"roads": 132, "infra": 10, "alert": "ORANGE", "severity": "Major",    "prob": "4%"},
-        50:  {"roads": 146, "infra": 11, "alert": "RED",    "severity": "Major",    "prob": "2%"},
-        100: {"roads": 154, "infra": 12, "alert": "RED",    "severity": "Severe",   "prob": "1%"},
-        200: {"roads": 162, "infra": 14, "alert": "RED",    "severity": "Severe",   "prob": "0.5%"},
-    }
     steps = [5, 10, 25, 50, 100, 200]
     data_entries = []
     img_entries = []
     for T in steps:
         d = sim_data.get(T, {})
-        defs = defaults[T]
         Q = d.get("Q_cms", 0)
         maxD = d.get("max_depth_m", 0)
         wetA = d.get("wet_area_km2", 0)
         b64 = d.get("b64", "")
+        roads = d.get("roads_at_risk", 0)
+        infra = d.get("infra_at_risk", 0)
+        alert = d.get("alert_level", "GREEN")
+        severity = d.get("severity", "None")
+        prob = d.get("probability", "--")
         data_entries.append(
-            f"  {T}: {{Q:{Q}, maxDepth:{maxD}, wetArea:{wetA}, roads:{defs['roads']}, infra:{defs['infra']}, alert:'{defs['alert']}', severity:'{defs['severity']}', prob:'{defs['prob']}'}}"
+            f"  {T}: {{Q:{Q}, maxDepth:{maxD}, wetArea:{wetA}, roads:{roads}, infra:{infra}, alert:'{alert}', severity:'{severity}', prob:'{prob}'}}"
         )
         img_entries.append(f"  {T}: {repr(b64)}")
     sim_data_js = "const SIM_STEPS = [5, 10, 25, 50, 100, 200];\n"

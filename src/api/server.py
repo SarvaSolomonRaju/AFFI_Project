@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 import time
 from datetime import datetime, timezone
@@ -18,6 +19,7 @@ for p in [str(ROOT), str(ROOT / "src")]:
         sys.path.insert(0, p)
 
 from src.api.auth import validate_api_key, require_role
+from src.api.routes_map import router as map_router
 from common.logging_setup import configure_logging, get_logger
 
 configure_logging(level="INFO", to_file=True, log_dir=ROOT / "outputs" / "logs")
@@ -39,13 +41,20 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
+_default_origins = "http://localhost:5173,http://localhost:3000"
+_cors_origins = [
+    o.strip() for o in os.environ.get("AFFI_CORS_ORIGINS", _default_origins).split(",") if o.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(map_router)
 
 
 class HealthResponse(BaseModel):
