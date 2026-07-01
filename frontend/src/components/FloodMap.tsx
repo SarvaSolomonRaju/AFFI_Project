@@ -38,7 +38,13 @@ const NFHL_FILL_COLOR: ExpressionSpecification = [
   "#cccccc",
 ];
 
-export function FloodMap() {
+interface FloodMapProps {
+  // When set (by the simulation slider), shows that scenario's raster
+  // instead of today's real forecast — same map, different data source.
+  overlayUrl?: string;
+}
+
+export function FloodMap({ overlayUrl }: FloodMapProps) {
   const [config, setConfig] = useState<MapConfig | null>(null);
   const [nfhlZones, setNfhlZones] = useState<GeoJSON.FeatureCollection | null>(null);
   const [roads, setRoads] = useState<GeoJSON.FeatureCollection | null>(null);
@@ -53,7 +59,11 @@ export function FloodMap() {
 
   if (!config) return <p>Loading map…</p>;
 
-  const b = config.raster_bounds["today-likely"];
+  // All flood-library rasters (today's forecast and every simulation
+  // scenario) are built on the same 10m grid, so they share one set of
+  // bounds — "fema-100yr" is just the one we know always exists.
+  const b = config.raster_bounds["fema-100yr"];
+  const rasterUrl = overlayUrl ?? apiRasterUrl("/api/v1/map/raster/today-likely");
 
   return (
     <div style={{ height: 520, marginTop: 20, borderRadius: 8, overflow: "hidden" }}>
@@ -74,9 +84,9 @@ export function FloodMap() {
 
         {b && (
           <Source
-            id="today-likely-raster"
+            id="overlay-raster"
             type="image"
-            url={apiRasterUrl("/api/v1/map/raster/today-likely")}
+            url={rasterUrl}
             coordinates={[
               [b.west, b.north],
               [b.east, b.north],
@@ -84,7 +94,7 @@ export function FloodMap() {
               [b.west, b.south],
             ]}
           >
-            <Layer id="today-likely-layer" type="raster" paint={{ "raster-opacity": 0.75 }} />
+            <Layer id="overlay-layer" type="raster" paint={{ "raster-opacity": 0.75 }} />
           </Source>
         )}
 

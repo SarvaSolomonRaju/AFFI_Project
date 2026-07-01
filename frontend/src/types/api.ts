@@ -45,6 +45,23 @@ export interface RasterBounds {
   north: number;
 }
 
+export interface SimulationScenario {
+  Q_cms: number;
+  max_depth_m: number;
+  wet_area_km2: number;
+  roads_at_risk: number;
+  infra_at_risk: number;
+  alert_level: AlertLevel | string;
+  severity: string;
+  probability: string;
+  raster_url: string;
+}
+
+export interface SimulationScenariosResponse {
+  return_periods_yr: number[];
+  scenarios: Record<string, SimulationScenario>;
+}
+
 export interface MapConfig {
   bbox: { north: number; south: number; east: number; west: number };
   center: { lat: number; lon: number };
