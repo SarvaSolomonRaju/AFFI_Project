@@ -56,8 +56,9 @@ def _clean_name(raw, fallback: str) -> str:
     return fallback
 
 
-@router.get("/action-plan")
-async def get_action_plan(user: dict = Depends(validate_api_key)):
+def build_action_plan() -> dict:
+    """Shared by GET /action-plan and the bulletin generator (routes_bulletin.py)
+    so both read the same road/building lists — one source of truth."""
     roads = _load_geojson("roads_huc12.geojson")
     buildings = _load_geojson("buildings_huc12.geojson")
 
@@ -111,3 +112,8 @@ async def get_action_plan(user: dict = Depends(validate_api_key)):
         },
         "legal_note": LEGAL_NOTE,
     }
+
+
+@router.get("/action-plan")
+async def get_action_plan(user: dict = Depends(validate_api_key)):
+    return build_action_plan()

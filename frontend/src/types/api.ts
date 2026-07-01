@@ -74,6 +74,11 @@ export interface ActionPlan {
   legal_note: string;
 }
 
+export interface Bulletin {
+  alert_level: AlertLevel;
+  text: string;
+}
+
 export interface MapConfig {
   bbox: { north: number; south: number; east: number; west: number };
   center: { lat: number; lon: number };

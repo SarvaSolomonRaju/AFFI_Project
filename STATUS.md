@@ -48,12 +48,28 @@ The static `dashboard.html` generator stays as an offline fallback
 layers (`/api/v1/map/*`) and simulation scenarios (`/api/v1/simulation/*`)
 — data the static dashboard/Folium map previously only read from disk
 directly. Run it with `make serve-api` (docs at `/docs`). CORS now reads
-`AFFI_CORS_ORIGINS` instead of a wildcard. Frontend (React) work is
-planned separately, not started yet.
+`AFFI_CORS_ORIGINS` instead of a wildcard.
+
+**2026-06-30, frontend (React) built:** `frontend/` — Vite + React + TS,
+MapLibre GL JS map (real 3D building extrusion), simulation slider, Action
+Panel (`/api/v1/action-plan` — named roads/buildings to barricade/evacuate,
+cites ARS 28-910), NWS-style bulletin generator (`/api/v1/bulletin`). Run
+with `npm run dev` in `frontend/` alongside `make serve-api`.
+
+**Known gap surfaced while building the bulletin:** the alert packet's
+`watershed.huc` field (from `config/settings.py`, used by Task 1/2) holds
+the HUC-8 code (`15050301`, 510 km²), not the HUC-12 pilot watershed code
+(`150503010204`, 143.6 km²) that Task 3-5's real flood library actually
+uses. This is the same divergence noted in the archived
+`HONEST_ASSESSMENT_AND_REAL_DATA_PLAN.md` (2026-06-22) — still present,
+not yet reconciled. `src/api/routes_bulletin.py` now prints whatever value
+is actually there rather than mislabeling it "HUC-12."
 
 ## Tests
 
-`tests/` — pytest, 1137 lines. Re-ran 2026-06-30: **102/102 passed**, 3.29s.
+`tests/` — pytest. Re-ran 2026-06-30: **125/125 passed**.
+`frontend/` — Vitest: 7/7 passed. Playwright e2e: 1/1 passed.
+`make test` runs both Python and frontend unit tests together.
 
 ## How to reproduce data/outputs
 
