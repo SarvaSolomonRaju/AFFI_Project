@@ -23,7 +23,9 @@
       "Bash(awk '{print $6,$7,$8,$NF}')",
       "Bash(git init *)",
       "Bash(git branch *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git config *)"
     ]
   }
 }
