@@ -11,7 +11,13 @@
 
 watershed:
   name: "Upper Sonoita Creek"
-  huc: "15050301"
+  # This is the pilot HUC-12 (Upper Sonoita Creek sub-watershed) that the
+  # flood library, whitepaper, and dashboard map extent all actually use.
+  # Was "15050301" (the HUC-8 river-system code, ~15x too coarse) until
+  # 2026-08-10 -- config/task2.yaml's basin-level HUC-8 fields are a
+  # separate, intentional use for training-basin identifiers and were
+  # left alone.
+  huc: "150503010204"
   state: "AZ"
   county: "Santa Cruz"
   area_km2: 510
