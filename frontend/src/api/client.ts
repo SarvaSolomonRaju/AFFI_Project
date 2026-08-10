@@ -19,3 +19,11 @@ export async function apiGet<T>(path: string): Promise<T> {
 export function apiRasterUrl(path: string): string {
   return `${API_BASE}${path}`;
 }
+
+export async function apiGetBlob(path: string): Promise<Blob> {
+  const headers: Record<string, string> = {};
+  if (API_KEY) headers["X-API-Key"] = API_KEY;
+  const res = await fetch(`${API_BASE}${path}`, { headers });
+  if (!res.ok) throw new Error(`${path} failed: ${res.status} ${res.statusText}`);
+  return res.blob();
+}

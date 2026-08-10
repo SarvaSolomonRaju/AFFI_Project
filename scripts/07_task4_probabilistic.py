@@ -15,9 +15,11 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap, BoundaryNorm
 import numpy as np
+import rasterio
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))  # so `from common...` resolves, same as every other script
 
 import argparse
 from src.probabilistic import (
@@ -35,6 +37,20 @@ LIBRARY_PATH = ROOT / "outputs/task3/spatial_predictions.npz"
 ALERT_PATH = ROOT / "outputs/task1_alert_packet.json"
 OUT_DIR = ROOT / "outputs/task4"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
+
+
+def _describe_today_selection(today: dict) -> dict:
+    """Provenance for how today's LIKELY (P50) map was chosen from the library
+    (src/probabilistic/map_selection.py) — makes the rainfall->discharge->map
+    lookup visible on the dashboard instead of silent."""
+    from src.probabilistic.map_selection import describe_selection
+    look = today["scenarios"]["likely"]["lookup"]
+    return describe_selection(
+        look,
+        rainfall_in=today["rainfall_inches"]["p50"],
+        discharge_cms=today["discharge_cms"]["p50"],
+    )
+
 
 # -------------------- Plotting helpers --------------------
 # Flood depth colormap (white = dry, blue ramp = depth)
@@ -146,7 +162,7 @@ def main():
                    f"Most Likely (P50 rain={day0['p50_24hr']:.2f}\")")
     save_depth_png(today["scenarios"]["worst"]["lookup"].depth_map,
                    OUT_DIR / "today_worst.png",
-                   f"Worst Case (P90 rain={day0['p90_24hr']:.2f}\")")
+                   f"Worst case: how far the water could spread (heavy-rain day, {day0['p90_24hr']:.1f}\")")
 
     # PoI raster
     maps_3 = [today["scenarios"][k]["lookup"].depth_map
@@ -161,6 +177,38 @@ def main():
                         best=maps_3[0], likely=maps_3[1], worst=maps_3[2],
                         poi=poi.astype(np.float32),
                         expected=exp_depth.astype(np.float32))
+
+    # ---- Tag roads/buildings/infrastructure against TODAY's real depth ----
+    # (see src/probabilistic/today_feature_status.py docstring for why this
+    # exists) -- reference transform/CRS from the flood library since
+    # today's arrays share that exact 10m grid but carry no georeferencing
+    # of their own.
+    from src.probabilistic.today_feature_status import write_today_feature_status
+    ref_tif = ROOT / "data" / "flood_library_real" / "depth_T100yr_Q455cms.tif"
+    if ref_tif.exists():
+        with rasterio.open(ref_tif) as ref:
+            ref_transform, ref_crs = ref.transform, ref.crs
+        write_today_feature_status(
+            maps_3[1], maps_3[2], ref_transform, ref_crs,
+            OUT_DIR / "today_feature_status.json",
+            poi=poi,
+        )
+        print("[3.4/4] Tagged roads/buildings/infrastructure against today's live forecast")
+
+        # The map's own raster overlay (routes_map.py's today-likely/today-poi
+        # layers) used to only be written by the one-time, manually-run
+        # src/dashboard/interactive_map.py -- so the blue water overlay a user
+        # actually sees on the map was frozen on whatever day `make` was last
+        # run, never the live forecast, even though every other live number
+        # (depth stats, road/building status) WAS refreshing every cycle.
+        # Regenerating it here, every cycle, closes that gap.
+        from src.probabilistic.map_overlay import write_live_map_overlays
+        write_live_map_overlays(
+            maps_3[1], poi, ref_transform, ref_crs,
+            out_dir=ROOT / "outputs",
+            bounds_path=ROOT / "outputs" / "_map_layer_bounds.json",
+        )
+        print("[3.4/4] Refreshed live map raster overlays (today-likely, today-poi)")
 
     # ---- Whitepaper Table-3 manager products ----
     print("[3.5/4] Building Flood-Control-Manager products (P>0.5m, uncertainty, hydrograph, Tp)...")
@@ -245,6 +293,7 @@ def main():
                 "p90": float(day0["p90_24hr"]),
             },
             "discharge_cms": today["discharge_cms"],
+            "map_selection": _describe_today_selection(today),
             "likely_classification": today_likely_cls,
             "worst_classification": today_worst_cls,
             "scenarios_stats": {

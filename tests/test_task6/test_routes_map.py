@@ -29,9 +29,9 @@ class TestMapConfig:
         assert set(data["bbox"].keys()) == {"north", "south", "east", "west"}
         assert len(data["reference_markers"]) == 3
         assert data["available_layers"] == [
-            "nfhl-zones", "bfe-lines", "creek-centerline", "roads", "buildings", "infrastructure",
+            "nfhl-zones", "bfe-lines", "creek-centerline", "roads", "buildings", "infrastructure", "evac-routes",
         ]
-        assert data["available_rasters"] == ["fema-100yr", "today-likely", "today-poi"]
+        assert data["available_rasters"] == ["fema-100yr", "today-likely", "today-poi", "population"]
 
     def test_has_raster_bounds_for_frontend_overlay_placement(self):
         data = client.get("/api/v1/map/config").json()
@@ -50,7 +50,7 @@ class TestMapLayers:
             ("creek-centerline", 8),
             ("roads", 324),
             ("buildings", 1345),
-            ("infrastructure", 16),
+            ("infrastructure", 19),
         ],
     )
     def test_known_layer_returns_geojson(self, layer, min_features):
@@ -124,3 +124,39 @@ class TestAuthEnforced:
         resp = client.get("/api/v1/map/layers/nfhl-zones")
         assert resp.status_code == 401
         os.environ["AFFI_AUTH_DISABLED"] = "true"
+
+
+class TestElevation:
+    def test_point_inside_watershed_returns_elevation(self):
+        resp = client.get("/api/v1/map/elevation?lat=31.5393&lon=-110.7548")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["elevation_m"] is not None
+        assert 1000 < data["elevation_m"] < 2500  # sane range for this AZ watershed
+
+    def test_point_with_return_period_includes_flood_depth(self):
+        resp = client.get("/api/v1/map/elevation?lat=31.5393&lon=-110.7548&return_period=100")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["return_period_yr"] == 100
+        assert data["flood_depth_m"] is not None
+        assert data["flood_depth_m"] >= 0
+
+    def test_point_outside_watershed_400s(self):
+        resp = client.get("/api/v1/map/elevation?lat=0&lon=0")
+        assert resp.status_code == 400
+
+    def test_missing_query_params_422s(self):
+        resp = client.get("/api/v1/map/elevation")
+        assert resp.status_code == 422
+
+    def test_evac_routes_layer_is_servable(self):
+        resp = client.get("/api/v1/map/layers/evac-routes")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data["features"]) == 3
+
+    def test_population_raster_is_servable(self):
+        resp = client.get("/api/v1/map/raster/population")
+        assert resp.status_code == 200
+        assert resp.headers["content-type"] == "image/png"

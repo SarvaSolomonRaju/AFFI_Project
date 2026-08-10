@@ -11,6 +11,7 @@ from typing import Optional
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -24,6 +25,11 @@ from src.api.routes_action import router as action_router
 from src.api.routes_bulletin import router as bulletin_router
 from src.api.routes_historical import router as historical_router
 from src.api.routes_cockpit import router as cockpit_router
+from src.api.routes_live import router as live_router
+from src.api.routes_contacts import router as contacts_router
+from src.api.routes_official import router as official_router
+from src.api.routes_verification import router as verification_router
+from src.api.routes_sensors import router as sensors_router
 from common.logging_setup import configure_logging, get_logger
 
 configure_logging(level="INFO", to_file=True, log_dir=ROOT / "outputs" / "logs")
@@ -31,6 +37,7 @@ log = get_logger("affi.api")
 
 OUTPUTS_DIR = ROOT / "outputs"
 TASK1_DIR = OUTPUTS_DIR / "task1"
+TASK4_DIR = OUTPUTS_DIR / "task4"
 MODELS_DIR = ROOT / "models"
 
 app = FastAPI(
@@ -63,6 +70,17 @@ app.include_router(action_router)
 app.include_router(bulletin_router)
 app.include_router(historical_router)
 app.include_router(cockpit_router)
+app.include_router(live_router)
+app.include_router(contacts_router)
+app.include_router(official_router)
+app.include_router(verification_router)
+app.include_router(sensors_router)
+
+# Serve generated outputs (flood maps, hydrographs) as unauthenticated static
+# files — <img> tags cannot send X-API-Key headers, so authenticated endpoints
+# are unusable for images in the browser.
+if OUTPUTS_DIR.exists():
+    app.mount("/outputs", StaticFiles(directory=str(OUTPUTS_DIR)), name="outputs")
 
 
 class HealthResponse(BaseModel):
@@ -203,6 +221,36 @@ async def get_return_periods(user: dict = Depends(validate_api_key)):
             for d in days
         ],
     }
+
+
+@app.get("/api/v1/forecast/7day-detail", tags=["Forecast"])
+async def get_7day_detail(user: dict = Depends(validate_api_key)):
+    fpath = TASK4_DIR / "forecast_7day.json"
+    if not fpath.exists():
+        raise HTTPException(status_code=404, detail="7-day detail not available. Run `make forecast` first.")
+    forecast = json.loads(fpath.read_text())
+    days_raw = forecast.get("forecast_7day", [])
+    days = []
+    for d in days_raw:
+        likely = d.get("likely", {})
+        worst = d.get("worst", {})
+        days.append({
+            "day": d["day"],
+            "date": d["date"],
+            "alert_level": d.get("alert_level", "GREEN"),
+            "likely": {
+                "max_depth_m": likely.get("max_depth_m", 0.0),
+                "wet_area_km2": likely.get("wet_area_km2", 0.0),
+                "scenario_class": likely.get("scenario_class", "None"),
+                "caption": likely.get("caption", ""),
+                "thumbnail_url": f"/outputs/task4/day{d['day']}_likely.png",
+            },
+            "worst": {
+                "max_depth_m": worst.get("max_depth_m", 0.0),
+                "wet_area_km2": worst.get("wet_area_km2", 0.0),
+            },
+        })
+    return {"generated_utc": forecast.get("generated_utc"), "days": days}
 
 
 @app.get("/api/v1/model/metrics", tags=["Model"])

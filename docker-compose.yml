@@ -1,6 +1,14 @@
 services:
   api:
     build: .
+    # rasterio/fiona/GDAL don't publish manylinux_aarch64 wheels, so on
+    # Apple Silicon (or any arm64 host) pip falls back to a source build,
+    # which fails with modern pip/setuptools regardless of version pinned
+    # (see Dockerfile comment). Building for amd64 (via Docker Desktop's
+    # Rosetta emulation) gets the real prebuilt wheels instead of fighting
+    # that build -- also the realistic choice since most cloud hosts this
+    # would eventually deploy to are x86_64 anyway.
+    platform: linux/amd64
     ports:
       - "8000:8000"
     volumes:
@@ -48,6 +56,7 @@ services:
 
   scheduler:
     build: .
+    platform: linux/amd64  # same rasterio/GDAL wheel-availability reason as api, above
     volumes:
       - ./outputs:/app/outputs
       - ./models:/app/models
@@ -57,5 +66,13 @@ services:
       - PYTHONPATH=/app
     command: python scripts/scheduler.py
     restart: unless-stopped
+    # Not an HTTP service, so it can't answer the api image's inherited
+    # HEALTHCHECK (curls localhost:8000/health, a port this container never
+    # listens on) -- without this it always shows "unhealthy" in `docker
+    # compose ps` even while working correctly, which reads as broken during
+    # a demo. Disabling it here, not by removing the HEALTHCHECK from the
+    # shared image, since the api service still needs it.
+    healthcheck:
+      disable: true
     depends_on:
       - api

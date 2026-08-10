@@ -1,5 +1,6 @@
 import { useLiveData } from "../hooks/useLiveData";
 import type { ForecastDaysResponse } from "../types/api";
+import { StaleBadge } from "./StaleBadge";
 
 // Small colored pill for the alert level — reuses the same class names
 // as AlertBanner's alert-green/advisory/watch/warning, just smaller.
@@ -19,17 +20,19 @@ interface ForecastTableProps {
 }
 
 export function ForecastTable({ refreshSignal }: ForecastTableProps) {
-  const { data, error } = useLiveData<ForecastDaysResponse>(
+  const { data, error, lastUpdated } = useLiveData<ForecastDaysResponse>(
     "/api/v1/forecast/days",
     60_000,
     refreshSignal,
   );
   const days = data?.forecast_days ?? null;
 
-  if (error) return <p>Could not load forecast: {error}</p>;
+  if (error && !days) return <p>Could not load forecast: {error}</p>;
   if (!days) return <p>Loading 7-day forecast…</p>;
 
   return (
+    <>
+    {error && <StaleBadge error={error} lastUpdated={lastUpdated} />}
     <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 20 }}>
       <thead>
         <tr style={{ textAlign: "left", borderBottom: "1px solid var(--border)" }}>
@@ -57,5 +60,6 @@ export function ForecastTable({ refreshSignal }: ForecastTableProps) {
         ))}
       </tbody>
     </table>
+    </>
   );
 }

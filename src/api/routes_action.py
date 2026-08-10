@@ -1,12 +1,14 @@
 """Action Panel — turns flood status data into named, actionable lists
 for a flood manager, instead of just probabilities on a chart.
 
-Scoped to the FEMA 100-yr reference flood (the extent
-data/local_assets/roads_huc12.geojson and buildings_huc12.geojson are
-tagged against — see scripts/14_build_local_assets.py). This is NOT
-the same as "today's live forecast" — there is no road/building-level
-intersection against today's forecast raster yet. Labeled honestly in
-the response rather than presented as more precise than it is.
+Scoped to TODAY's actual live forecast when available
+(outputs/task4/today_feature_status.json, written fresh on every forecast
+run by scripts/07_task4_probabilistic.py -- see
+src/probabilistic/today_feature_status.py). Falls back to the static FEMA
+100-yr reference tagging baked into data/local_assets/roads_huc12.geojson /
+buildings_huc12.geojson (scripts/14_build_local_assets.py) only if that
+file doesn't exist yet -- and says so plainly in reference_scenario rather
+than presenting the fallback as if it were live data.
 """
 from __future__ import annotations
 
@@ -41,9 +43,19 @@ LEGAL_NOTE = (
 )
 
 
-def _load_geojson(name: str) -> dict:
+TODAY_STATUS_PATH = ROOT / "outputs" / "task4" / "today_feature_status.json"
+
+
+def _load_geojson(name: str, today_key: str | None = None) -> dict:
     path = DATA_DIR / "local_assets" / name
-    return json.loads(path.read_text()) if path.exists() else {"features": []}
+    data = json.loads(path.read_text()) if path.exists() else {"features": []}
+    if today_key is not None and TODAY_STATUS_PATH.exists():
+        today_status = json.loads(TODAY_STATUS_PATH.read_text()).get(today_key, [])
+        for feature, status in zip(data.get("features", []), today_status):
+            props = feature["properties"]
+            props["max_depth_m"] = status["max_depth_m"]
+            props["status"] = status["status"]
+    return data
 
 
 def _clean_name(raw, fallback: str) -> str:
@@ -60,8 +72,8 @@ def _clean_name(raw, fallback: str) -> str:
 def build_action_plan() -> dict:
     """Shared by GET /action-plan and the bulletin generator (routes_bulletin.py)
     so both read the same road/building lists — one source of truth."""
-    roads = _load_geojson("roads_huc12.geojson")
-    buildings = _load_geojson("buildings_huc12.geojson")
+    roads = _load_geojson("roads_huc12.geojson", today_key="roads")
+    buildings = _load_geojson("buildings_huc12.geojson", today_key="buildings")
 
     flooded_roads = sorted(
         (
@@ -110,8 +122,13 @@ def build_action_plan() -> dict:
     # (not capped to 20) callout instead.
     schools_in_flood_zone = [b for b in flooded_buildings if b["category"] == "School"]
 
+    reference_scenario = (
+        "Today's live forecast" if TODAY_STATUS_PATH.exists()
+        else "FEMA 1% annual chance (100-yr) flood (today's forecast unavailable)"
+    )
+
     return {
-        "reference_scenario": "FEMA 1% annual chance (100-yr) flood",
+        "reference_scenario": reference_scenario,
         "roads_to_barricade": {
             "total_count": len(flooded_roads),
             "top": flooded_roads[:20],

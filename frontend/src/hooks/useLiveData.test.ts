@@ -7,6 +7,11 @@ import * as client from "../api/client";
 describe("useLiveData", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    // Each test below shares the same "/api/v1/thing" path — without this,
+    // a successful fetch cached (localStorage) by one test leaks into the
+    // next as "last known good" data, since that's now deliberate behavior,
+    // not a bug (see the last-known-good test further down).
+    localStorage.clear();
   });
 
   afterEach(() => {
@@ -58,7 +63,7 @@ describe("useLiveData", () => {
     unmount();
   });
 
-  it("sets error state and leaves data null when the fetch fails", async () => {
+  it("sets error state and leaves data null when the fetch fails with no prior success", async () => {
     vi.spyOn(client, "apiGet").mockRejectedValue(new Error("network down"));
 
     const { result, unmount } = renderHook(() => useLiveData("/api/v1/thing", 60_000));
@@ -66,6 +71,28 @@ describe("useLiveData", () => {
 
     expect(result.current.error).toBe("Error: network down");
     expect(result.current.data).toBeNull();
+    expect(result.current.isStale).toBe(true);
+    unmount();
+  });
+
+  it("keeps the last successful data (labeled stale) when a later fetch fails", async () => {
+    // A dropped connection mid-event is exactly the case this exists for —
+    // the dashboard should keep showing the last real data, not go blank.
+    const apiGetSpy = vi.spyOn(client, "apiGet").mockResolvedValueOnce({ value: 42 });
+
+    const { result, unmount } = renderHook(() => useLiveData("/api/v1/thing", 60_000));
+    await act(async () => {});
+    expect(result.current.data).toEqual({ value: 42 });
+    expect(result.current.isStale).toBe(false);
+
+    apiGetSpy.mockRejectedValueOnce(new Error("network down"));
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(60_000);
+    });
+
+    expect(result.current.data).toEqual({ value: 42 }); // unchanged, not cleared
+    expect(result.current.error).toBe("Error: network down");
+    expect(result.current.isStale).toBe(true);
     unmount();
   });
 });

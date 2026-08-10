@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { AlertBanner } from "./AlertBanner";
 import * as client from "../api/client";
 
@@ -7,6 +7,14 @@ import * as client from "../api/client";
 // real network call in a unit test, just control what apiGet returns
 // and check the component renders it correctly.
 describe("AlertBanner", () => {
+  beforeEach(() => {
+    // useLiveData now persists the last successful fetch to localStorage
+    // (last-known-good fallback) — without clearing it, the "unreachable"
+    // test below would see the previous test's cached alert instead of a
+    // clean no-prior-data state.
+    localStorage.clear();
+  });
+
   it("shows the current alert level and color class once data arrives", async () => {
     vi.spyOn(client, "apiGet").mockResolvedValue({
       current_alert: "WATCH",

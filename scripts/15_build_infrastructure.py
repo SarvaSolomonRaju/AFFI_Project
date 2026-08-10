@@ -46,27 +46,60 @@ HUC12_BBOX = {
     "north":  31.6200,
 }
 
-SYNTHETIC_INFRA = [
-    {"name": "Patagonia High School (Shelter)", "category": "shelter",
-     "lat": 31.5420, "lon": -110.7530,
-     "address": "500 Naugle Ave, Patagonia AZ 85624",
-     "capacity": 350, "amenity": "school"},
+# Real official list, verified name/address/lat/lon (user-supplied Town of
+# Patagonia critical-facilities roster) — overrides the guessed placements
+# these entries used to carry. Coordinates below are the exact ones given,
+# not re-geocoded or adjusted.
+OFFICIAL_INFRA = [
+    {"name": "Sulphur Springs Valley Electric Cooperative", "category": "power",
+     "lat": 31.540758, "lon": -110.751849,
+     "address": "281 McKeown Ave, Patagonia AZ 85624",
+     "operator": "Sulphur Springs Valley Electric Cooperative", "amenity": "substation"},
+    {"name": "Patagonia Town Hall", "category": "government",
+     "lat": 31.540582, "lon": -110.753335,
+     "address": "310 McKeown Ave, Patagonia AZ 85624",
+     "amenity": "town_hall"},
+    {"name": "Patagonia Marshal Office", "category": "police",
+     "lat": 31.540661, "lon": -110.752086,
+     "address": "287 McKeown Ave, Patagonia AZ 85624",
+     "amenity": "police"},
+    {"name": "Public Works (WWTP)", "category": "wastewater",
+     "lat": 31.538178, "lon": -110.760046,
+     "address": "152 Costello Dr, Patagonia AZ 85624",
+     "amenity": "wastewater_plant"},
+    {"name": "Patagonia Post Office", "category": "post_office",
+     "lat": 31.541605, "lon": -110.751366,
+     "address": "100 N. Taylor Lane, Patagonia AZ 85624",
+     "amenity": "post_office"},
+    {"name": "Arizona Minerals Corporation", "category": "mine",
+     "lat": 31.540337, "lon": -110.752763,
+     "address": "301 W. McKeown Ave, Patagonia AZ 85624",
+     "amenity": "mine"},
+    {"name": "Patagonia Assisted Care Agency", "category": "hospital",
+     "lat": 31.540983, "lon": -110.751200,
+     "address": "275 W. McKeown Ave, Patagonia AZ 85624",
+     "amenity": "clinic"},
+    {"name": "Patagonia Union High School (Shelter)", "category": "shelter",
+     "lat": 31.546559, "lon": -110.746127,
+     "address": "200 Naugle Ave, Patagonia AZ 85624",
+     "amenity": "school"},
+    {"name": "Patagonia Volunteer Fire and Rescue", "category": "fire_station",
+     "lat": 31.539687, "lon": -110.752445,
+     "address": "142 N. 3rd Ave, Patagonia AZ 85624",
+     "amenity": "fire_station"},
+]
+for _item in OFFICIAL_INFRA:
+    _item["source"] = "official_critical_facilities_list"
+
+# Everything below has no official address/coordinate source (utility
+# infrastructure not on the town's public facilities roster) — placements
+# are best-effort estimates along the creek corridor, NOT verified. Flagged
+# honestly via "source" so the map/UI can distinguish the two.
+ESTIMATED_INFRA = [
     {"name": "Patagonia Sports Complex (Shelter)", "category": "shelter",
      "lat": 31.5405, "lon": -110.7515,
      "address": "400 McKeown Ave, Patagonia AZ 85624",
      "capacity": 500, "amenity": "sports_centre"},
-    {"name": "Patagonia Health Center", "category": "hospital",
-     "lat": 31.5395, "lon": -110.7545,
-     "address": "360 McKeown Ave, Patagonia AZ 85624",
-     "phone": "520-394-2345", "beds": 8, "amenity": "clinic"},
-    {"name": "Patagonia Fire Station No. 1", "category": "fire_station",
-     "lat": 31.5440, "lon": -110.7525,
-     "address": "327 McKeown Ave, Patagonia AZ 85624",
-     "units": 2, "amenity": "fire_station"},
-    {"name": "Patagonia Marshal Office", "category": "police",
-     "lat": 31.5415, "lon": -110.7540,
-     "address": "340 McKeown Ave, Patagonia AZ 85624",
-     "officers": 4, "amenity": "police"},
     {"name": "Patagonia Water Co. Well Field", "category": "water_supply",
      "lat": 31.5385, "lon": -110.7560,
      "address": "Sonoita Creek corridor, Patagonia AZ",
@@ -75,16 +108,6 @@ SYNTHETIC_INFRA = [
      "lat": 31.5378, "lon": -110.7553,
      "address": "Near Sonoita Creek, Patagonia AZ",
      "capacity_gpd": 120000, "amenity": "water_works"},
-    {"name": "Patagonia Wastewater Treatment Plant", "category": "wastewater",
-     "lat": 31.5370, "lon": -110.7548,
-     "address": "S Sonoita Creek, Patagonia AZ",
-     "capacity_gpd": 80000,
-     "note": "Lift station at risk of inundation at 10-yr event",
-     "amenity": "wastewater_plant"},
-    {"name": "APS Patagonia Substation", "category": "power",
-     "lat": 31.5460, "lon": -110.7510,
-     "address": "SR-82 & Eagle Eye Rd, Patagonia AZ",
-     "voltage_kv": 69, "operator": "Arizona Public Service", "amenity": "substation"},
     {"name": "Cell Tower - Sonoita Ridge (AT&T/Verizon)", "category": "cell_tower",
      "lat": 31.5480, "lon": -110.7490,
      "address": "Sonoita Ridge, Patagonia AZ",
@@ -116,6 +139,10 @@ SYNTHETIC_INFRA = [
      "load_tons": 20, "note": "Secondary route; closes first at moderate flood stage",
      "amenity": "bridge"},
 ]
+for _item in ESTIMATED_INFRA:
+    _item["source"] = "estimated_not_officially_sourced"
+
+SYNTHETIC_INFRA = OFFICIAL_INFRA + ESTIMATED_INFRA
 
 CATEGORY_META = {
     "shelter":      {"icon": "home",          "color": "green",  "priority": "high",  "label": "Shelter"},
@@ -131,6 +158,9 @@ CATEGORY_META = {
     "sewer_line":   {"icon": "recycle",       "color": "darkpurple","priority":"medium","label": "Sewer Line"},
     "public_works": {"icon": "wrench",        "color": "darkblue","priority": "medium","label": "Public Works"},
     "bridge":       {"icon": "road",          "color": "black",  "priority": "high",  "label": "Bridge/Crossing"},
+    "government":   {"icon": "landmark",      "color": "darkblue","priority": "medium","label": "Town Government"},
+    "post_office":  {"icon": "envelope",      "color": "gray",   "priority": "low",   "label": "Post Office"},
+    "mine":         {"icon": "industry",      "color": "darkred","priority": "medium","label": "Mine"},
 }
 
 

@@ -52,7 +52,7 @@ map:
 dashboard: map
 
 serve-api:
-	uvicorn src.api.server:app --host 127.0.0.1 --port 8000 --reload
+	AFFI_AUTH_DISABLED=true uvicorn src.api.server:app --host 127.0.0.1 --port 8000 --reload
 
 all:
 	$(PY) scripts/00_run_all.py

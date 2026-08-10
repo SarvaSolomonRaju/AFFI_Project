@@ -181,21 +181,44 @@ def build_all(rasters_npz: Path,
     d = np.load(rasters_npz)
     best = d["best"]; likely = d["likely"]; worst = d["worst"]
 
-    # Probability of depth > 0.5 m
+    # Population-at-risk for today's live forecast. today_rasters.npz has no
+    # embedded georeferencing (npz doesn't carry CRS/transform), but it's
+    # built on the exact same 10m EPSG:32612 grid as every flood_library_real
+    # depth tif (see src/probabilistic/scenarios.py) -- read that transform
+    # from a tif that's always present rather than re-deriving/hardcoding it.
+    population = {"exposed_total": None, "life_safety_p50": None, "life_safety_p90": None,
+                  "source": "WorldPop 2020 1km, disaggregated onto the 10m flood grid "
+                            "(uniform-density assumption within each 1km source cell)"}
+    try:
+        import rasterio
+        from common.paths import DATA_DIR
+        from common.population_exposure import population_at_risk
+
+        ref_tif = DATA_DIR / "flood_library_real" / "depth_T100yr_Q455cms.tif"
+        with rasterio.open(ref_tif) as ref:
+            transform = ref.transform
+        population["exposed_total"] = population_at_risk(likely, transform, threshold_m=0.0)
+        population["life_safety_p50"] = population_at_risk(likely, transform, threshold_m=0.5)
+        population["life_safety_p90"] = population_at_risk(worst, transform, threshold_m=0.5)
+    except Exception:
+        pass
+
+    # Probability of depth > 0.5 m -- plain-language titles so the image is
+    # self-explanatory to a non-technical reader, not just the caption card.
     p05 = prob_depth_exceeds(best, likely, worst, threshold_m=0.5)
     render_raster_png(
         p05, out_dir / "today_prob_gt_05m.png",
         cmap="YlOrRd", vmin=0.0, vmax=max(0.05, float(p05.max())),
-        title="P(depth > 0.5 m)  -  Life-safety threshold",
-        subtitle="Whitepaper Table 3: primary decision-support product (EOC)")
+        title="Where water could sweep you off your feet",
+        subtitle="Red = high chance the water is over 1.6 ft deep (evacuate first)")
 
     # Uncertainty std-dev
     sigma = uncertainty_std(best, likely, worst)
     render_raster_png(
         sigma, out_dir / "today_uncertainty.png",
         cmap="magma", vmin=0.0, vmax=max(0.05, float(sigma.max())),
-        title="Forecast uncertainty (\u03c3 across ensemble)",
-        subtitle="High \u03c3 = members disagree  ->  decide conservatively")
+        title="How sure we are about the depth",
+        subtitle="Brighter = less certain -> plan for the worst case there")
 
     # Time-to-peak
     ttp = time_to_peak_hours(rainfall_inches_p50)
@@ -212,6 +235,7 @@ def build_all(rasters_npz: Path,
         "prob_gt_05m_wet_pixels": int((p05 > 0.05).sum()),
         "uncertainty_max_m": float(sigma.max()),
         "uncertainty_mean_m": float(sigma[sigma > 0].mean()) if (sigma > 0).any() else 0.0,
+        "population": population,
         "files": {
             "prob_gt_05m_png": "today_prob_gt_05m.png",
             "uncertainty_png": "today_uncertainty.png",

@@ -15,12 +15,72 @@
   --accent-orange: #f39c12;
   --accent-red: #e74c3c;
   --accent-purple: #9b59b6;
+
+  /* Reserved for "this is a government/official source," never reused as a
+     UI accent — the whole point is that it reads as visually distinct from
+     --accent-blue (our own app chrome) so an official NWS/FEMA citation is
+     never mistaken for FloodAI's own assessment. */
+  --gov-navy: #14315c;
+  --gov-navy-light: #2a4d7a;
+
+  /* Type scale — one place to look instead of ad hoc rem values scattered
+     per component. Card titles (h3) and page title (h1) now read at
+     deliberately different weights instead of nearly the same size. */
+  --text-2xs: 0.68rem;
+  --text-xs: 0.74rem;
+  --text-sm: 0.82rem;
+  --text-base: 0.95rem;
+  --text-lg: 1.15rem;
+  --text-xl: 1.55rem;
+  --text-2xl: 2.1rem;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 36px;
+
+  --radius: 8px;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  /* Digits in a fixed-width column (cfs/ft/% readouts, tables, the contact
+     roster, forecast table) were rendering at variable width, so aligned
+     columns visibly jittered. This is a site-wide, zero-risk fix — it only
+     changes numeral spacing, never layout or color. */
+  font-variant-numeric: tabular-nums;
+}
+
+h1 {
+  font-size: var(--text-2xl);
+  letter-spacing: -0.01em;
+}
+
+h3 {
+  font-size: var(--text-lg);
+}
+
+/* Section zoning — a small uppercase eyebrow that groups the wall of
+   otherwise-identical cards into scannable bands (live decision support /
+   reference & history / system health) without restyling every panel
+   underneath it. */
+.zone-label {
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin: var(--space-6) 0 var(--space-2);
+  padding-bottom: var(--space-2);
+  border-bottom: 1px solid var(--border);
+}
+.zone-label:first-of-type {
+  margin-top: var(--space-3);
 }
 
 .alert-banner {

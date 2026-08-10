@@ -7,7 +7,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
+# python:3.12-slim's pip no longer bundles setuptools/wheel, which older
+# packages without a modern pyproject.toml build backend (rasterio 1.3.x's
+# sdist) need at build time -- omitting this fails with
+# "ModuleNotFoundError: No module named 'pkg_resources'" partway through.
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip install --no-cache-dir -r requirements.txt \
     && pip install --no-cache-dir streamlit python-multipart python-jose[cryptography] passlib[bcrypt]
 
 COPY . .

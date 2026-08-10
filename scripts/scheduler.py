@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import subprocess
 import sys
 import signal
 import time
@@ -7,8 +8,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+for _p in (str(ROOT), str(ROOT / "src")):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -37,6 +39,23 @@ def run_forecast_pipeline():
             log.info("Saved to DB as run #%d", run_id)
         except Exception as e:
             log.error("DB save failed: %s", e)
+
+        # Task 1 only refreshes task1_alert_packet.json. The dashboard's
+        # 7-day outlook and probabilistic maps read outputs/task4/forecast_7day.json,
+        # a SEPARATE file that Task 1 never touches — without this, that file
+        # (and everything the frontend derives from it) goes stale forever even
+        # while this scheduler is "running". Same "forecast" pair as `make forecast`.
+        try:
+            result = subprocess.run(
+                [sys.executable, str(ROOT / "scripts" / "07_task4_probabilistic.py"), "--library", "real"],
+                cwd=str(ROOT), capture_output=True, text=True, timeout=600,
+            )
+            if result.returncode != 0:
+                log.error("Task 4 refresh failed (rc=%d): %s", result.returncode, result.stderr[-2000:])
+            else:
+                log.info("Task 4 (7-day probabilistic forecast) refreshed")
+        except Exception as e:
+            log.error("Task 4 refresh raised: %s", e)
 
     except Exception as e:
         log.error("Scheduled pipeline failed: %s", e)
