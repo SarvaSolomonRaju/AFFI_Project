@@ -23,6 +23,16 @@ was 190+).
    encoded (`tests-190%2F190-brightgreen`, not `tests-190/190-...`), so a
    plain string replace of `190/190` will miss the badge unless you also
    handle `190%2F190`.
+
+   **Do not do a blind global string replace of the bare number** (e.g.
+   `s.replace("193", "196")`) — it will also corrupt any unrelated number
+   that happens to contain that substring. This has actually happened:
+   replacing `"193"` silently turned a gauge-record year range
+   `1930–1983` into `1960–1983`, and a DEM pixel dimension `1778×1933`
+   into `1778×1963`, elsewhere in the same file. Grep the old count first
+   and inspect every match's context before replacing, or replace only
+   the specific known phrases (`"193/193"`, `"193 unit tests"`, etc.),
+   never the bare digits alone.
 4. Update `STATUS.md`'s `**Last verified:**` date to today.
 5. If any file this session deleted or renamed is still linked from
    `STATUS.md` or `README.md` (check with

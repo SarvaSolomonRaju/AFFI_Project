@@ -100,7 +100,7 @@ silently pass again.
 
 ## Tests
 
-`tests/` — pytest. Re-ran 2026-08-10: **193/193 passed** (up from 149 on
+`tests/` — pytest. Re-ran 2026-08-10: **196/196 passed** (up from 149 on
 2026-06-30 — new coverage added for Task 4/6 map features and the two
 critical bugs fixed 2026-08-10, see `docs/AFFI_whitepaper_2026-08-10.md`
 Changelog).

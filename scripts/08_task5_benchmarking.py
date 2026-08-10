@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT))
 
 import argparse
 from src.probabilistic import FloodMapLibrary, rainfall_to_discharge
+from src.probabilistic.ensemble import SONOITA_BASIN_AREA_KM2
 from src.probabilistic.flood_library import load_real_library
 from src.benchmarking import (
     nws_atlas14_sonoita,
@@ -24,6 +25,8 @@ from src.benchmarking import (
     replay_event,
     pipeline_validation,
     score_report,
+    classification_accuracy,
+    sensitivity_analysis,
 )
 from src.benchmarking.return_periods import return_period_table
 
@@ -49,13 +52,13 @@ def main():
         library = FloodMapLibrary.load(LIBRARY_PATH)
     alert = json.loads(ALERT_PATH.read_text())
     events = load_events(EVENTS_PATH)
-    print(f"[1/4] Loaded library ({library.n_maps} maps), "
+    print(f"[1/6] Loaded library ({library.n_maps} maps), "
           f"alert packet ({len(alert['forecast_days'])} days), "
           f"events ({len(events)})")
 
     # -- Pipeline validation --
     val = pipeline_validation(library, alert)
-    print(f"[2/4] Pipeline validation: {val['n_passed']}/{val['n_checks']} passed")
+    print(f"[2/6] Pipeline validation: {val['n_passed']}/{val['n_checks']} passed")
     for c in val["checks"]:
         flag = "PASS" if c["passed"] else "FAIL"
         print(f"      [{flag}] {c['name']}: {c['detail']}")
@@ -63,7 +66,7 @@ def main():
     # -- Historical event replays --
     replays = [replay_event(ev, library, ensemble_fn=rainfall_to_discharge)
                for ev in events]
-    print(f"[3/4] Replayed {len(replays)} historical events")
+    print(f"[3/6] Replayed {len(replays)} historical events")
     for r in replays:
         msg = (f"      {r['name']}: Q={r['q_used_cms']:.1f} cms -> "
                f"predicted_median_d={r.get("predicted_median_wet_depth_m", r["predicted_max_depth_m"]):.2f} m (max={r["predicted_max_depth_m"]:.2f})")
@@ -93,15 +96,51 @@ def main():
             "rp_q90": discharge_to_return_period(q90),
         })
 
+    # -- D5.5: return-period classification accuracy vs. the historical
+    # event catalog's labeled return periods. Must use the flood library's
+    # own peak-discharge return-period table (LP-III, e.g. Q2=83.6 cms),
+    # NOT the module-default Q_RETURN_TABLE_CMS -- that table is a
+    # "daily-mean discharge" scale, and comparing the catalog's peak_q_cms
+    # against it silently compares two different physical quantities
+    # (found and fixed while wiring this up: it produced a false 0%
+    # accuracy score before this fix).
+    if args.library == 'real':
+        manifest = json.loads((ROOT / "data/flood_library_real/manifest.json").read_text())
+        peak_q_table = sorted(
+            [(int(t), float(info["Q_cms"])) for t, info in manifest["return_periods"].items()],
+            key=lambda x: x[1],
+        )
+        rp_fn = lambda q: discharge_to_return_period(q, table=peak_q_table)
+    else:
+        rp_fn = discharge_to_return_period
+    class_acc = classification_accuracy(events, rp_fn)
+    print(f"[4/6] Classification accuracy: {class_acc['n_correct']}/{class_acc['n_events']} "
+          f"events within {class_acc['tolerance_factor']}x of labeled return period "
+          f"({class_acc['accuracy']:.0%})" if class_acc["accuracy"] is not None else
+          "[4/6] Classification accuracy: no events with both Q and labeled return period")
+
+    # -- D5.4: sensitivity analysis (rainfall ±20%, basin area ±10%) --
+    sens = sensitivity_analysis(
+        rainfall_to_discharge,
+        baseline_rainfall_in=nws_atlas14_sonoita()["10yr"],  # 10yr 24hr benchmark
+        baseline_basin_area_km2=SONOITA_BASIN_AREA_KM2,
+    )
+    print(f"[5/6] Sensitivity: +{sens['rainfall_sensitivity']['perturbation_pct']:.0f}% rainfall -> "
+          f"{sens['rainfall_sensitivity']['pct_change_at_high']:+.1f}% discharge; "
+          f"+{sens['basin_area_sensitivity']['perturbation_pct']:.0f}% area -> "
+          f"{sens['basin_area_sensitivity']['pct_change_at_high']:+.1f}% discharge")
+
     # -- Compose report --
     report = score_report(val, replays, rp_table)
     report["atlas14_24hr_in"] = nws_atlas14_sonoita()
     report["forecast_return_periods"] = forecast_rp
+    report["classification_accuracy"] = class_acc
+    report["sensitivity_analysis"] = sens
     report["generated_utc"] = alert["generated_utc"]
     report["watershed"] = alert["watershed"]["name"]
 
     (OUT_DIR / "benchmark_report.json").write_text(json.dumps(report, indent=2))
-    print(f"[4/4] Saved benchmark_report.json + return_period_table.csv to "
+    print(f"[6/6] Saved benchmark_report.json + return_period_table.csv to "
           f"{OUT_DIR.relative_to(ROOT)}/")
     if report["scores"]["depth_mae_m"] is not None:
         print(f"      Historical-event MAE: {report['scores']['depth_mae_m']:.3f} m "

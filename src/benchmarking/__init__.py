@@ -5,7 +5,12 @@ from .return_periods import (
     rainfall_to_return_period,
 )
 from .historical_events import load_events, replay_event
-from .validation import pipeline_validation, score_report
+from .validation import (
+    pipeline_validation,
+    score_report,
+    classification_accuracy,
+    sensitivity_analysis,
+)
 
 __all__ = [
     "nws_atlas14_sonoita",
@@ -15,4 +20,6 @@ __all__ = [
     "replay_event",
     "pipeline_validation",
     "score_report",
+    "classification_accuracy",
+    "sensitivity_analysis",
 ]

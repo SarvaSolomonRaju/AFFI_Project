@@ -90,21 +90,33 @@ Q_RETURN_TABLE_CMS: List[Tuple[int, float]] = [
 ]
 
 
-def discharge_to_return_period(q_cms: float) -> dict:
-    """Map a daily-mean discharge to an approximate return period (years)."""
+def discharge_to_return_period(q_cms: float, table: List[Tuple[int, float]] = None) -> dict:
+    """Map a discharge to an approximate return period (years).
+
+    `table` defaults to Q_RETURN_TABLE_CMS (a "daily-mean discharge" scale
+    blending Atlas-14 with Task 2 training percentiles). Pass the flood
+    library's own return_periods table (LP-III peak discharge, e.g.
+    Q2=83.6 cms -- see data/flood_library_real/manifest.json) instead when
+    comparing against something measured on a peak-discharge scale, such
+    as the historical event catalog's peak_q_cms -- mixing the two scales
+    silently compares apples to oranges (peak Q is naturally much larger
+    than daily-mean Q for a flashy ephemeral stream).
+    """
+    tbl = table if table is not None else Q_RETURN_TABLE_CMS
     q = float(q_cms)
-    if q <= Q_RETURN_TABLE_CMS[0][1]:
-        return {"nearest_rp_yr": "< 1yr", "rp_yr_estimate": 0.5, "q_cms": q}
-    for i in range(len(Q_RETURN_TABLE_CMS) - 1):
-        rp_lo, q_lo = Q_RETURN_TABLE_CMS[i]
-        rp_hi, q_hi = Q_RETURN_TABLE_CMS[i + 1]
+    if q <= tbl[0][1]:
+        return {"nearest_rp_yr": f"< {tbl[0][0]}yr", "rp_yr_estimate": tbl[0][0] * 0.5, "q_cms": q}
+    for i in range(len(tbl) - 1):
+        rp_lo, q_lo = tbl[i]
+        rp_hi, q_hi = tbl[i + 1]
         if q_lo <= q <= q_hi:
             w = (q - q_lo) / (q_hi - q_lo)
             log_rp = math.log(rp_lo) + w * (math.log(rp_hi) - math.log(rp_lo))
             return {"nearest_rp_yr": f"{rp_lo}-{rp_hi}yr",
                     "rp_yr_estimate": float(math.exp(log_rp)),
                     "q_cms": q}
-    return {"nearest_rp_yr": "> 500yr", "rp_yr_estimate": 1000.0, "q_cms": q}
+    top_rp = tbl[-1][0]
+    return {"nearest_rp_yr": f"> {top_rp}yr", "rp_yr_estimate": float(top_rp * 2), "q_cms": q}
 
 
 def return_period_table() -> List[dict]:

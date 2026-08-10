@@ -1,6 +1,6 @@
 # FloodAI — Probabilistic Flash-Flood Forecasting for Upper Sonoita Creek
 
-[![Tests](https://img.shields.io/badge/tests-193%2F193-brightgreen)]() [![Data](https://img.shields.io/badge/data-FEMA%20%2B%20USGS%20(real)-blue)]() [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
+[![Tests](https://img.shields.io/badge/tests-196%2F196-brightgreen)]() [![Data](https://img.shields.io/badge/data-FEMA%20%2B%20USGS%20(real)-blue)]() [![License](https://img.shields.io/badge/license-MIT-lightgrey)]()
 
 Real-data, government-authoritative flash-flood forecasting and visualization for the **Upper Sonoita Creek** watershed (HUC-12 `150503010204`, Patagonia, Arizona). FloodAI combines FEMA National Flood Hazard Layer + FEMA Flood Insurance Study profiles + USGS 3DEP DEM + USGS NWIS streamflow records to deliver a **discharge-indexed flood-map library**, a **probabilistic 24-hour forecast**, and an **interactive Leaflet map** of flood probability and depth.
 
@@ -16,7 +16,7 @@ Real-data, government-authoritative flash-flood forecasting and visualization fo
 | **Operational HTML Dashboard**                   | `outputs/dashboard.html`                      | EOC-ready dashboard (3.6 MB single file) with embedded interactive map, 7-day forecast, scenario cards, methodology, provenance. |
 | **8-map Real Flood Library**                     | `data/flood_library_real/depth_T*yr_Q*cms.tif` | One GeoTIFF per return period (2/5/10/25/50/100/200/500-yr), 10 m, EPSG:32612. |
 | **24-hr Probabilistic Forecast**                 | `outputs/task4/forecast_7day.json`            | P10/P50/P90 rainfall → Q → depth → wet-area, plus today's PoI raster.       |
-| **Benchmarking vs Historical Events**            | `outputs/task5/*.json`                        | Validation residuals + 193 automated regression tests.                     |
+| **Benchmarking vs Historical Events**            | `outputs/task5/*.json`                        | Validation residuals + 196 automated regression tests.                     |
 
 ---
 
@@ -49,7 +49,7 @@ Partial runs:
 make data          # only re-download FEMA + USGS data and rebuild library
 make forecast      # only re-run Task 4 + Task 5 forecasts
 make map           # only rebuild interactive map + dashboard
-make test          # pytest tests/ -q  (193/193 expected)
+make test          # pytest tests/ -q  (196/196 expected)
 make clean         # remove generated artifacts
 ```
 
@@ -95,7 +95,7 @@ make clean         # remove generated artifacts
    +-----------+----------+      +----------------------+
    |  Task 4 forecast      |     |  Task 5 benchmarking |
    |  P10/P50/P90 rainfall |     |  vs historical events|
-   |  -> SCS-CN -> Q       |     |  193 unit tests       |
+   |  -> SCS-CN -> Q       |     |  196 unit tests       |
    |  -> library lookup    |     +----------+-----------+
    +-----------+-----------+                |
                |                            |
@@ -164,7 +164,7 @@ AFFI_Project/
 │   ├── task4/                     <- forecast rasters + JSON
 │   └── task5/                     <- benchmarking results
 │
-└── tests/                         <- 193 pytest unit + regression tests
+└── tests/                         <- 196 pytest unit + regression tests
 ```
 
 ---
@@ -196,7 +196,7 @@ AFFI_Project/
 ## 7. Verification
 
 ```bash
-make test                          # pytest tests/ -q  -> 193 passed
+make test                          # pytest tests/ -q  -> 196 passed
 ls data/flood_library_real/        # should list 8 GeoTIFFs + manifest.json
 python -c "import rasterio, numpy as np; \
   src=rasterio.open('data/flood_library_real/depth_T100yr_Q455cms.tif'); \
