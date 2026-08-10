@@ -29,12 +29,18 @@ Full deliverable-by-deliverable trace: `docs/AFFI_whitepaper_2026-08-10.md` Sect
 
 ## Known architecture gaps (as of this date)
 
+*(Historical, as of 2026-06-30 — all three items below are resolved by the
+work described later in this file and in the whitepaper; kept for the
+project's own history, not current fact.)*
+
 1. **No real frontend.** `outputs/dashboard.html` is a static file generated
    by `scripts/build_dashboard.py` (~2000 lines of Python building HTML/CSS/JS
    as f-strings). No components, no frontend build step, no UI tests.
 2. **Backend built but disconnected.** `src/api/server.py` is a working
    FastAPI app (auth, audit logging) but nothing in `main.py` or the
-   `Makefile` starts it — it's not wired into the pipeline.
+   `Makefile` starts it — it's not wired into the pipeline. (`main.py` was
+   the pipeline entry point at the time; superseded by `scripts/00_run_all.py`
+   and moved to `_archive/main_legacy_pre_00_run_all.py` on 2026-08-10.)
 3. **No version control until today** — git initialized 2026-06-30.
 
 Decision made 2026-06-30: rebuild the delivery layer as a real
