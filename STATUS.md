@@ -1,6 +1,6 @@
 # FloodAI — Current Status
 
-**Last verified:** 2026-06-30
+**Last verified:** 2026-08-10
 
 This is the single source of truth for project state. Older status docs
 (dashboard fix logs, manager briefings) are archived in
@@ -25,7 +25,7 @@ Verified by checking `data/flood_library_real/*.tif` and
 `data/terrain/dem_huc12_*.tif` mtimes (2026-06-29) against the Plan B
 plan doc (2026-06-22) — the real-data rebuild actually ran.
 
-Full deliverable-by-deliverable trace: [`outputs/whitepaper_deliverables_status.md`](outputs/whitepaper_deliverables_status.md).
+Full deliverable-by-deliverable trace: `docs/AFFI_whitepaper_2026-08-10.md` Section 5 (per-task Status lines) — the old `outputs/whitepaper_deliverables_status.md` used a superseded May-11 deliverable numbering scheme that no longer matches the current D-numbering and was deleted 2026-08-10.
 
 ## Known architecture gaps (as of this date)
 
@@ -100,9 +100,30 @@ silently pass again.
 
 ## Tests
 
-`tests/` — pytest. Re-ran 2026-06-30: **149/149 passed**.
-`frontend/` — Vitest: 15/15 passed. Playwright e2e: 1/1 passed.
+`tests/` — pytest. Re-ran 2026-08-10: **193/193 passed** (up from 149 on
+2026-06-30 — new coverage added for Task 4/6 map features and the two
+critical bugs fixed 2026-08-10, see `docs/AFFI_whitepaper_2026-08-10.md`
+Changelog).
+`frontend/` — Vitest: 17/17 passed. `tsc --noEmit`: clean.
 `make test` runs pytest + frontend typecheck + frontend unit tests together.
+
+## Critical fixes (2026-08-10)
+
+Two severe bugs were found and fixed in the live pipeline this session —
+see the whitepaper Changelog for full detail:
+
+1. **Rainfall unit mismatch** (`map_calculator.py`, `alert_engine.py`) —
+   Open-Meteo's mm precipitation was never converted to inches before
+   comparing against inch-based alert thresholds, causing a permanent
+   false WARNING / "Severe flooding" state for about a week regardless
+   of actual weather.
+2. **OOM crash in population-at-risk** (`population_exposure.py`) — the
+   entire CONUS-scale WorldPop raster (6.8GB peak RSS) was loaded to
+   serve one small watershed grid, SIGKILLing the Task 4 refresh on
+   nearly every scheduled cycle and silently freezing "live" data on a
+   stale snapshot for six days.
+
+Both are fixed, tested, and committed (`7f56691`).
 
 ## How to reproduce data/outputs
 
