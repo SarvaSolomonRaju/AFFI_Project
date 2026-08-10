@@ -215,8 +215,15 @@ class AlertEngine:
         """
         import pandas as pd
 
-        roll_24hr = accumulations["24hr"]
-        roll_1hr = accumulations["1hr"]
+        # accumulations is raw mm (see map_calculator.compute_rolling_
+        # accumulations) but every threshold in self.thresholds is in
+        # inches (built from idf_10yr, an inches table) -- convert here,
+        # same fix as map_calculator.compute_daily_statistics, since this
+        # method re-derives its own per-member arrays from `accumulations`
+        # rather than reusing that function's already-converted output.
+        MM_TO_IN = 25.4
+        roll_24hr = accumulations["24hr"] / MM_TO_IN
+        roll_1hr = accumulations["1hr"] / MM_TO_IN
 
         classified = []
         for day_info in daily_stats:

@@ -91,3 +91,23 @@ def test_daily_statistics_has_required_keys():
     for day in stats:
         assert required.issubset(day.keys()), \
             f"Missing keys: {required - set(day.keys())}"
+
+
+def test_daily_statistics_converts_mm_to_inches():
+    """
+    Regression test for the mm/inches unit bug fixed 2026-08-10.
+
+    Input rainfall is mm/hour (see EnsembleForecastClient.fetch() docstring).
+    A constant 25.4 mm/hour for 24+ hours gives a 24-hr rolling sum of
+    609.6 mm = exactly 24.0 inches. Every downstream consumer (alert
+    thresholds, discharge model) expects this function's output in
+    inches -- if the /25.4 conversion is ever removed, this asserts
+    24.0 rather than the wrong 609.6.
+    """
+    df = make_test_data(n_hours=48, value=25.4)
+    accum = compute_rolling_accumulations(df)
+    stats = compute_daily_statistics(df, accum, n_days=1)
+
+    assert stats[0]["p50_24hr"] == pytest.approx(24.0)
+    assert stats[0]["p10_24hr"] == pytest.approx(24.0)
+    assert stats[0]["p90_24hr"] == pytest.approx(24.0)

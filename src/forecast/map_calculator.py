@@ -188,9 +188,22 @@ def compute_daily_statistics(map_matrix: pd.DataFrame,
     list of dict
         One dict per day with all statistics.
     """
-    roll_1hr = accumulations["1hr"]
-    roll_6hr = accumulations["6hr"]
-    roll_24hr = accumulations["24hr"]
+    # Every value upstream of here (map_matrix, roll_1hr/6hr/24hr) is in
+    # millimeters -- EnsembleForecastClient.fetch() pulls Open-Meteo
+    # "precipitation" in mm/hour and nothing converts it before this point.
+    # But every field this function returns is named "*_24hr"/"*_1hr"/etc
+    # and every downstream consumer (alert_engine's inch-based IDF
+    # thresholds, ensemble.rainfall_to_discharge's SCS-CN calibration
+    # documented in inches, the dashboard's "rainfall_inches" JSON field)
+    # treats the number as inches. Without this conversion every rainfall
+    # figure in the app is the raw mm value passed off as inches -- 25.4x
+    # too large, which is what was silently forcing a permanent WARNING
+    # alert and "Severe/catastrophic" flood classification regardless of
+    # actual weather.
+    MM_TO_IN = 25.4
+    roll_1hr = accumulations["1hr"] / MM_TO_IN
+    roll_6hr = accumulations["6hr"] / MM_TO_IN
+    roll_24hr = accumulations["24hr"] / MM_TO_IN
 
     days_list = []
 
@@ -202,7 +215,7 @@ def compute_daily_statistics(map_matrix: pd.DataFrame,
         if mask.sum() == 0:
             continue
 
-        # Max accumulation in each member for this day
+        # Max accumulation in each member for this day (now in inches)
         daily_24hr = roll_24hr[mask].max()
         daily_1hr = roll_1hr[mask].max()
         daily_6hr = roll_6hr[mask].max()

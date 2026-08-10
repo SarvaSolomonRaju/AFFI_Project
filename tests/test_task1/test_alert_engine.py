@@ -20,7 +20,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 import pytest
 import numpy as np
+import pandas as pd
 from src.forecast.alert_engine import AlertEngine, build_return_period_comparison
+from src.forecast.map_calculator import compute_rolling_accumulations, compute_daily_statistics
 
 
 # Create a mock alert config using a simple class
@@ -121,6 +123,28 @@ def test_storm_index_calculation(engine):
     result = engine.classify_day(day_stats, members_24hr, members_1hr)
     expected_si = 1.55 / 3.10  # 0.5
     assert abs(result["storm_index_24hr"] - expected_si) < 0.01
+
+
+def test_classify_all_days_converts_mm_before_comparing_to_inch_thresholds(engine):
+    """
+    Regression test for the mm/inches unit bug fixed 2026-08-10.
+
+    classify_all_days() re-derives its own per-member arrays from the raw
+    (mm) `accumulations` dict rather than reusing compute_daily_statistics's
+    already-converted output. A mild, real rainfall (0.1 mm/hour, so a
+    24-hr sum of ~2.4 mm = ~0.094 in) must NOT trigger WARNING just
+    because 2.4 (misread as inches) would exceed the 2.015-in warning
+    threshold. Before the fix this asserted WARNING; it must be GREEN.
+    """
+    times = pd.date_range("2026-08-10", periods=48, freq="h")
+    cols = [f"member_{i:02d}" for i in range(5)]
+    map_matrix = pd.DataFrame(0.1, index=times, columns=cols)  # mm/hour
+
+    accum = compute_rolling_accumulations(map_matrix)
+    daily_stats = compute_daily_statistics(map_matrix, accum, n_days=1)
+
+    classified = engine.classify_all_days(daily_stats, accum, map_matrix)
+    assert classified[0]["alert_level"] == "GREEN"
 
 
 def test_return_period_comparison():
