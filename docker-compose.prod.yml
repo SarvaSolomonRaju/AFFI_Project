@@ -1,0 +1,72 @@
+# Production / public-review deployment.
+# ---------------------------------------------------------------------------
+# Use this on a cloud VM to share the dashboard freely (no laptop needed):
+#     docker compose -f docker-compose.prod.yml up -d --build
+# Then open  http://<your-server-ip>/  in any browser.
+#
+# Differences from the local docker-compose.yml:
+#  * The frontend is served on port 80 (the normal web port) and is the ONLY
+#    thing exposed. The API is reachable only inside the private Docker
+#    network (the frontend's nginx proxies /api, /outputs, /health to it), so
+#    port 8000 is never open to the internet.
+#  * The frontend is built with a relative API base, so it works behind any
+#    IP or domain.
+#  * The api/scheduler images stay pinned to linux/amd64 (the GIS libraries —
+#    rasterio/GDAL/fiona — don't build cleanly from source on arm64). On the
+#    free ARM cloud VM this runs under emulation, which DEPLOY.md sets up with
+#    one command; serving is light so emulation is fine for a review site.
+# See deploy/DEPLOY.md for the full step-by-step.
+
+services:
+  api:
+    build: .
+    platform: linux/amd64
+    volumes:
+      - ./outputs:/app/outputs
+      - ./models:/app/models
+      - ./config:/app/config
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      # Public read-only review site: no per-user login. The API is not
+      # exposed to the internet (no published port below), and every route
+      # is read-only, so this is intentional for a review deployment.
+      - AFFI_AUTH_DISABLED=true
+      - AFFI_API_KEYS_FILE=/app/config/api_keys.json
+    # No `ports:` — the API is internal only. The frontend reaches it by the
+    # service name `api` over the Docker network; the public never touches it.
+    command: uvicorn src.api.server:app --host 0.0.0.0 --port 8000 --workers 2
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE: ""   # relative API calls -> nginx proxy -> api (same origin)
+    ports:
+      - "80:80"             # the one public port; open only this in the VM firewall
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  scheduler:
+    build: .
+    platform: linux/amd64
+    volumes:
+      - ./outputs:/app/outputs
+      - ./models:/app/models
+      - ./config:/app/config
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+    command: python scripts/scheduler.py
+    restart: unless-stopped
+    healthcheck:
+      disable: true
+    depends_on:
+      - api
