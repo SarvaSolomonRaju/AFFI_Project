@@ -43,9 +43,9 @@ function gaugeStatus(dischargeCms: number, thresholds: Record<string, number> | 
   const t5 = thresholds["5"] ?? t2;
   const t20 = thresholds["25"] ?? thresholds["50"] ?? t5; // closest real entry to Google's 20-yr definition
   if (dischargeCms >= t20) return { label: "EXTREME", color: "#7b241c", textColor: "white" };
-  if (dischargeCms >= t5) return { label: "DANGER", color: "#c0392b", textColor: "white" };
-  if (dischargeCms >= t2) return { label: "WARNING", color: "#e67e22", textColor: "white" };
-  return { label: "NORMAL", color: "#27ae60", textColor: "white" };
+  if (dischargeCms >= t5) return { label: "DANGER", color: "var(--status-warning)", textColor: "white" };
+  if (dischargeCms >= t2) return { label: "WARNING", color: "var(--status-watch)", textColor: "white" };
+  return { label: "NORMAL", color: "var(--status-good)", textColor: "white" };
 }
 
 function GaugeStatusBadge({ dischargeCms, thresholds }: { dischargeCms: number; thresholds: Record<string, number> | null | undefined }) {
@@ -75,7 +75,7 @@ function getUrgency(lifeSafetyPct: number, ttpP50: number): UrgencyLevel {
   if (lifeSafetyPct === 0) {
     return {
       label: "MONITOR",
-      color: "#27ae60",
+      color: "var(--status-good)",
       textColor: "white",
       actions: [
         "Normal operations — no flooding expected",
@@ -87,7 +87,7 @@ function getUrgency(lifeSafetyPct: number, ttpP50: number): UrgencyLevel {
   if (ttpP50 > 4 || lifeSafetyPct < 15) {
     return {
       label: "PREPARE",
-      color: "#f39c12",
+      color: "var(--status-advisory)",
       textColor: "black",
       actions: [
         "Alert emergency crews and stage barricades",
@@ -99,7 +99,7 @@ function getUrgency(lifeSafetyPct: number, ttpP50: number): UrgencyLevel {
   if (ttpP50 > 2 || lifeSafetyPct < 50) {
     return {
       label: "DEPLOY",
-      color: "#e67e22",
+      color: "var(--status-watch)",
       textColor: "white",
       actions: [
         "Close highest-risk roads now (see Action Plan below)",
@@ -110,7 +110,7 @@ function getUrgency(lifeSafetyPct: number, ttpP50: number): UrgencyLevel {
   }
   return {
     label: "EXECUTE — IMMEDIATE ACTION",
-    color: "#c0392b",
+    color: "var(--status-warning)",
     textColor: "white",
     actions: [
       "Mandatory evacuation of ALL listed buildings NOW",

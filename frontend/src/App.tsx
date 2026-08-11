@@ -140,31 +140,59 @@ function App() {
   }
 
   return (
-    <div id="dashboard-root" style={{ padding: 24, maxWidth: 1100, margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 8 }}>
-        <h1 style={{ margin: 0 }}>FloodAI — Upper Sonoita Creek</h1>
+    <div id="dashboard-root" style={{ padding: "28px 24px 40px", maxWidth: 1120, margin: "0 auto" }}>
+      {/* Editorial masthead / command bar */}
+      <header style={{
+        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+        flexWrap: "wrap", gap: 16, paddingBottom: 16, marginBottom: 18,
+        borderBottom: "2px solid var(--border-strong)",
+      }}>
+        <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
+          {/* Terracotta wordmark chip */}
+          <div style={{
+            width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+            background: "var(--accent)", color: "#fff",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.15rem",
+            boxShadow: "var(--shadow-card)", marginTop: 2,
+          }}>
+            AI
+          </div>
+          <div>
+            <div style={{
+              fontSize: "var(--text-2xs)", fontWeight: 700, letterSpacing: "0.16em",
+              textTransform: "uppercase", color: "var(--accent-ink)", marginBottom: 2,
+            }}>
+              Arizona Flash-Flood Inundation AI
+            </div>
+            <h1 style={{ margin: 0 }}>Upper Sonoita Creek</h1>
+            <div style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", marginTop: 3 }}>
+              HUC-12 150503010204 · Patagonia, Santa Cruz County, AZ · pour point USGS 09481500
+            </div>
+          </div>
+        </div>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           {mode === "live" && (
             <button
               onClick={() => setRefreshSignal((n) => n + 1)}
-              style={{ padding: "6px 14px", borderRadius: 6, border: "1px solid var(--border)", cursor: "pointer", background: "var(--bg-card)", color: "var(--text-primary)" }}
+              style={{ padding: "7px 14px", borderRadius: "var(--radius-sm)", border: "1px solid var(--border-strong)", cursor: "pointer", background: "var(--bg-card)", color: "var(--text-primary)", fontWeight: 600, fontSize: "0.82rem" }}
             >
-              Refresh now
+              ↻ Refresh now
             </button>
           )}
           <PrintSummaryButton />
           <ModeToggle mode={mode} onChange={handleModeChange} />
         </div>
-      </div>
+      </header>
 
       {mode === "live" ? (
-        <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem", marginTop: 0, marginBottom: 16 }}>
-          Auto-refreshes every 60s — no manual reload needed during an active event.
+        <p style={{ color: "var(--text-secondary)", fontSize: "0.82rem", marginTop: 0, marginBottom: 16, display: "flex", alignItems: "center", gap: 7 }}>
+          <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--status-good)", display: "inline-block", flexShrink: 0 }} />
+          Live forecast · auto-refreshes every 60 s — no manual reload needed during an active event.
         </p>
       ) : (
-        <p style={{ color: "var(--accent-orange)", fontSize: "0.85rem", marginTop: 0, marginBottom: 16, fontWeight: 600 }}>
-          SIMULATION MODE — no real forecast data. Slide the rainfall bar to explore what-if scenarios.
+        <p style={{ color: "var(--accent-orange)", fontSize: "0.82rem", marginTop: 0, marginBottom: 16, fontWeight: 700, letterSpacing: "0.02em" }}>
+          ▲ SIMULATION MODE — no real forecast data. Slide the rainfall bar to explore what-if scenarios.
         </p>
       )}
 
