@@ -25,6 +25,11 @@ services:
       - AFFI_AUTH_DISABLED=true
       - AFFI_API_KEYS_FILE=/app/config/api_keys.json
       - AFFI_CORS_ORIGINS=http://localhost:3000
+      # Dashboard assistant (routes_chat.py). Set ANTHROPIC_API_KEY in your
+      # shell or a .env file next to docker-compose.yml; it is passed through
+      # here and never reaches the browser. AFFI_CHAT_MODEL is optional.
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      - AFFI_CHAT_MODEL=${AFFI_CHAT_MODEL:-claude-haiku-4-5-20251001}
     command: uvicorn src.api.server:app --host 0.0.0.0 --port 8000 --workers 2
     restart: unless-stopped
     healthcheck:

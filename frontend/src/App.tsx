@@ -26,6 +26,7 @@ import { RegionalSensorsPanel } from "./components/RegionalSensorsPanel";
 import { DownloadMapsBar } from "./components/DownloadMapsBar";
 import { OfficialFloodMapsPanel } from "./components/OfficialFloodMapsPanel";
 import { TriageStrip } from "./components/TriageStrip";
+import { ChatAssistant } from "./components/ChatAssistant";
 import { apiGet, apiRasterUrl } from "./api/client";
 import type { SimState, SimulationScenariosResponse } from "./types/api";
 import { IDF_24HR, buildSimState, rainfallToReturnPeriod } from "./utils/simulation";
@@ -260,6 +261,9 @@ function App() {
       {mode === "live" && <ForecastTable refreshSignal={refreshSignal} />}
 
       <DevPanel refreshSignal={refreshSignal} simState={simStateProp} />
+
+      {/* Floating "explain this to me" assistant — available on every view. */}
+      <ChatAssistant />
     </div>
   );
 }

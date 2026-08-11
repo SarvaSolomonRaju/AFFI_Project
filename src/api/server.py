@@ -30,6 +30,7 @@ from src.api.routes_contacts import router as contacts_router
 from src.api.routes_official import router as official_router
 from src.api.routes_verification import router as verification_router
 from src.api.routes_sensors import router as sensors_router
+from src.api.routes_chat import router as chat_router
 from common.logging_setup import configure_logging, get_logger
 
 configure_logging(level="INFO", to_file=True, log_dir=ROOT / "outputs" / "logs")
@@ -75,6 +76,7 @@ app.include_router(contacts_router)
 app.include_router(official_router)
 app.include_router(verification_router)
 app.include_router(sensors_router)
+app.include_router(chat_router)
 
 # Serve generated outputs (flood maps, hydrographs) as unauthenticated static
 # files — <img> tags cannot send X-API-Key headers, so authenticated endpoints
