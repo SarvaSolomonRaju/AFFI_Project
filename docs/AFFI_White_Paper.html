@@ -609,7 +609,54 @@
 <p><b>A key transferability finding:</b> because the operational flood library is built from <i>nationally available</i> FEMA and USGS open data rather than bespoke hydrodynamic runs, any watershed with FEMA NFHL mapping, published base flood elevations, and a 3DEP DEM can receive an operational, return-period-indexed flood library quickly. The analytical method is itself a transferability asset. Estimated marginal effort per new watershed is roughly 40–80 hours for the full-fidelity path, and substantially less where FEMA coverage exists — the marginal cost of expansion, not the full system-development cost.</p>
 
 <div class="page-break"></div>
-<h2 class="section">9. References</h2>
+<h2 class="section">9. From Forecast to Action: Concept of Operations</h2>
+<p>A forecast only saves lives if it reaches the right person and triggers the right action in time. AFFI is therefore designed to fit the internationally recognized structure for effective early warning — the four pillars of the World Meteorological Organization's <i>Early Warnings for All</i> framework. A warning system that is strong in one pillar but weak in another does not protect anyone; the table below shows how AFFI contributes to all four.</p>
+
+<span class="tblcap">Table 7: AFFI mapped to the four pillars of an effective early-warning system (WMO)</span>
+<table class="data">
+<tr><th>Pillar</th><th>What it requires</th><th>How AFFI delivers it</th></tr>
+<tr><td><b>1 · Risk knowledge</b></td><td>Knowing who and what is exposed, and how often</td><td>FEMA regulatory floodplain, a return-period flood-depth library, an inundation-frequency layer, a population-at-risk estimate, an inventory of critical facilities, and a catalog of past events</td></tr>
+<tr><td><b>2 · Detection &amp; forecasting</b></td><td>Monitoring conditions and predicting the hazard</td><td>The six-stage pipeline, refreshed automatically every six hours, plus a live river-gauge status pin and the National Weather Service feed</td></tr>
+<tr><td><b>3 · Dissemination &amp; communication</b></td><td>Getting a clear warning to decision-makers</td><td>The EOC decision dashboard, a machine-readable alert packet (government API), an NWS-style bulletin generator, and a plain-language design with a built-in assistant so a non-specialist understands every panel</td></tr>
+<tr><td><b>4 · Preparedness &amp; response</b></td><td>Turning a warning into action</td><td>The Decision Cockpit (time-to-peak, life-safety probability, a Monitor→Prepare→Deploy→Execute posture), evacuation routes colored by whether today's flood cuts them off, an action plan of roads to barricade and buildings to evacuate, and an on-call contact roster</td></tr>
+</table>
+
+<h3 class="subsection">9.1 Roles and Escalation</h3>
+<p>AFFI is a decision-support tool for authorized officials — it informs a chain of human decisions, it does not replace them. As the alert level rises, the recommended posture and the responsible roles escalate with it:</p>
+<table class="data">
+<tr><th>Alert level</th><th>Posture</th><th>Typical actions and roles</th></tr>
+<tr><td><b>GREEN</b></td><td>Monitor</td><td>System refreshes automatically; EOC duty officer keeps a normal watch on the forecast.</td></tr>
+<tr><td><b>ADVISORY</b></td><td>Prepare</td><td>Emergency manager briefs staff; crews check barricades and equipment; school district and public works put on notice.</td></tr>
+<tr><td><b>WATCH</b></td><td>Deploy</td><td>Stage barricades and high-water rescue equipment; pre-position crews; review the action plan's road-closure list.</td></tr>
+<tr><td><b>WARNING</b></td><td>Execute</td><td>Close flagged roads, begin evacuation of at-risk buildings, activate the EOC, and coordinate with first responders — under the direction of responsible officials, informed by AFFI and the National Weather Service.</td></tr>
+</table>
+
+<div class="policy-box">
+  <b class="l">Dissemination policy:</b> AFFI alerts are delivered exclusively to authorized government personnel — county emergency managers, public-works directors, and EOC staff — never broadcast directly to the public. This keeps a responsible official in the loop for every public message, avoids the liability of automated warnings, and ensures AFFI supports the existing emergency-management chain rather than bypassing it.
+</div>
+
+<h2 class="section">10. Limitations and Honest Constraints</h2>
+<p>A tool used for life-safety decisions must be as clear about what it cannot do as about what it can. The following constraints are stated plainly so that no one over-trusts the system in a situation it was not built for.</p>
+<ul>
+  <li><b>Flood size is a band, not a precise number.</b> The model is strong at detecting <i>whether</i> a flood will occur (event-detection AUC-ROC ≈ 0.96) but less precise about exactly <i>how big</i> it will be, which is inherently hard in flashy desert streams. Magnitude should be read as a range, and worst-case (P90) values should drive life-safety decisions.</li>
+  <li><b>One watershed validated to date.</b> Upper Sonoita Creek is the first validated deployment. The architecture is built to transfer, but results in a new basin should be re-validated, not assumed.</li>
+  <li><b>Spatial accuracy not yet field-validated.</b> Formal comparison of predicted flood extents against post-event ground surveys (an IoU study) remains the primary open validation activity; the flood maps are anchored to FEMA-effective floodplain geometry in the meantime.</li>
+  <li><b>The hydraulic library is an analytical simplification.</b> Depth maps are built from FEMA base flood elevations and lidar terrain rather than full 2-D hydrodynamic (HEC-RAS) simulation — a deliberate, defensible choice for the pilot, with a neural surrogate in parallel development for higher fidelity.</li>
+  <li><b>Confidence falls with lead time.</b> A 5–7 day outlook is for planning and pre-positioning; road-closure and evacuation decisions belong to the 0–24 hour window when confidence is highest.</li>
+  <li><b>Channel flooding, not every puddle.</b> AFFI forecasts flooding along the mapped creek/wash corridor. Very localized urban street ponding outside that corridor is not its focus.</li>
+  <li><b>Decision support, not authority.</b> AFFI does not issue public warnings or make evacuation decisions for anyone. When AFFI and the National Weather Service disagree, the NWS is authoritative; in an immediate emergency, 911 and the county EOC govern.</li>
+</ul>
+
+<h2 class="section">11. Operations, Sustainability, and Governance</h2>
+<h3 class="subsection">11.1 How It Stays Current — and Fails Safe</h3>
+<p>The full pipeline re-runs automatically every six hours and on demand, and the dashboard refreshes on its own during an event. Critically, the system is honest about its own health: a data-staleness watchdog visibly warns when the forecast has not refreshed on schedule, so a stalled pipeline can never masquerade as a calm, current "all-clear."</p>
+<h3 class="subsection">11.2 Cost and Sustainability</h3>
+<p>Every data source AFFI depends on is free and public from a federal agency, which removes licensing cost and a major category of long-term risk. A full forecast cycle costs on the order of pennies of cloud compute, and the built-in dashboard assistant runs locally at no per-use cost. Sustainability is a design property, not an afterthought.</p>
+<h3 class="subsection">11.3 Provenance, Security, and Reproducibility</h3>
+<p>Every number on the dashboard traces to a named federal source, and the interface deliberately keeps official government data (e.g. National Weather Service alerts) visually distinct from AFFI's own model output so the two are never confused. The government API is access-controlled with audit logging, and alerts are restricted to authorized personnel. The entire stack is containerized for one-command, reproducible deployment, which is also what makes transfer to a new watershed a matter of substituting data rather than rebuilding software.</p>
+
+<div class="page-break"></div>
+<h2 class="section">12. References</h2>
 <ol style="font-size:9.2pt;">
   <li>Cloke, H. L., &amp; Pappenberger, F. (2009). Ensemble flood forecasting: A review. <i>Journal of Hydrology.</i> doi.org/10.1016/j.jhydrol.2009.06.005</li>
   <li>Kratzert, F., et al. (2019). Towards learning universal, regional, and local hydrological behaviors via machine learning. <i>Nature Communications.</i> doi.org/10.1038/s41467-019-13507-2</li>
@@ -627,7 +674,48 @@
   <li>USGS National Water Information System (NWIS) (2024). Real-time Streamflow Data for Arizona. waterdata.usgs.gov/nwis</li>
   <li>FEMA (2022). Flood Insurance Rate Maps &amp; National Flood Hazard Layer. fema.gov/flood-maps</li>
   <li>Google Research (2024). Flood Hub Global Flood Forecasting. sites.research.google/floods</li>
+  <li>World Meteorological Organization (2023). Early Warnings for All — Executive Action Plan 2023–2027 (four pillars of early warning). wmo.int/all-activities/build-resilience/early-warnings-all</li>
+  <li>Mitchell, M., et al. (2019). Model Cards for Model Reporting. <i>ACM Conference on Fairness, Accountability, and Transparency.</i> doi.org/10.1145/3287560.3287596</li>
 </ol>
+
+<div class="page-break"></div>
+<h2 class="section">Appendix A — Glossary</h2>
+<p>Plain-language definitions of the terms used in this document and on the dashboard, for a first-time reader.</p>
+<table class="data">
+<tr><th>Term</th><th>Plain-language meaning</th></tr>
+<tr><td><b>AFFI / FloodAI</b></td><td>This system — the Arizona Flash-Flood Inundation AI early-warning platform.</td></tr>
+<tr><td><b>Alert level</b></td><td>The threat rating, escalating: GREEN (normal) → ADVISORY → WATCH → WARNING.</td></tr>
+<tr><td><b>Base Flood Elevation (BFE)</b></td><td>FEMA's published height the water reaches in a 100-year flood — used to build the depth maps.</td></tr>
+<tr><td><b>Discharge (cfs / m³/s)</b></td><td>How much water is moving down the channel per second. Bigger discharge = bigger flood.</td></tr>
+<tr><td><b>DEM / lidar</b></td><td>A digital elevation model — a precise 3-D map of the ground surface, from laser (lidar) surveys.</td></tr>
+<tr><td><b>Ensemble</b></td><td>The weather model run many times (31 here) with slightly different starting conditions; agreement means confidence, scatter means uncertainty.</td></tr>
+<tr><td><b>EOC</b></td><td>Emergency Operations Center — where a county coordinates its disaster response.</td></tr>
+<tr><td><b>Hurdle model</b></td><td>The two-part AI: first decide IF today floods, then estimate HOW BIG.</td></tr>
+<tr><td><b>Inundation</b></td><td>Land covered by flood water.</td></tr>
+<tr><td><b>Life-safety threshold</b></td><td>Water 0.5 m (~1.6 ft) deep — enough to sweep an adult off their feet or float a car.</td></tr>
+<tr><td><b>LSTM</b></td><td>A type of neural network good at reading sequences over time — here, recent rainfall, to detect a flood day.</td></tr>
+<tr><td><b>Mean Areal Precipitation (MAP)</b></td><td>The average rainfall over the whole watershed — the correct input for predicting a flood.</td></tr>
+<tr><td><b>NSE</b></td><td>A hydrology accuracy score (1.0 = perfect); harsh for dry, flashy desert streams.</td></tr>
+<tr><td><b>P10 / P50 / P90</b></td><td>Best-case / most-likely / worst-case scenarios (10th, 50th, 90th percentile of the forecast).</td></tr>
+<tr><td><b>Probability of inundation</b></td><td>The chance (0–100%) that a given spot floods today.</td></tr>
+<tr><td><b>Return period</b></td><td>How rare a flood is: a "25-year flood" has a ~1-in-25 (4%) chance each year — not a countdown.</td></tr>
+<tr><td><b>Time-to-peak</b></td><td>How long until the flood is at its worst — i.e. how much time you have to act.</td></tr>
+<tr><td><b>XGBoost</b></td><td>A decision-tree machine-learning model; here it estimates flood size once a flood day is detected.</td></tr>
+</table>
+
+<h2 class="section">Appendix B — Model Card</h2>
+<p>A structured summary of the AI hydrology model, following the model-card standard for transparent reporting (Mitchell et al., 2019).</p>
+<table class="data">
+<tr><th>Field</th><th>Detail</th></tr>
+<tr><td><b>Model</b></td><td>Two-stage hurdle model: an LSTM binary event-gate (is today a flood day?) followed by an XGBoost peak-discharge regressor (how big?), with hydrologically-motivated input features.</td></tr>
+<tr><td><b>Intended use</b></td><td>Decision support for authorized emergency-management personnel: forecasting flood occurrence and approximate magnitude in the Upper Sonoita Creek watershed to inform road-closure, staging, and evacuation-planning decisions.</td></tr>
+<tr><td><b>Primary users</b></td><td>County emergency managers, public-works directors, and EOC staff.</td></tr>
+<tr><td><b>Out-of-scope uses</b></td><td>Public-facing automated warnings; issuing evacuation orders; individual "is my house/road safe" decisions; forecasting localized urban ponding outside the mapped channel; use in an un-validated watershed without re-validation.</td></tr>
+<tr><td><b>Training data</b></td><td>Anchor: Babocomari River gauge record (USGS 09471000) for general desert flash-flood behavior. Adaptation: Sonoita Creek gauge record (USGS 09481500). Features derived from rainfall history (antecedent precipitation, dry-day counts, seasonal and multi-day accumulation signals).</td></tr>
+<tr><td><b>Evaluation</b></td><td>Held-out test on Upper Sonoita Creek. Event detection AUC-ROC 0.959, AUC-PR 0.643, F1 0.611; magnitude NSE 0.348, PBIAS −2.9%.</td></tr>
+<tr><td><b>Ethical considerations</b></td><td>A life-safety tool: designed to keep a responsible official in the loop (no automated public alerts), to be visually honest about model-vs-official-source, and to fail safe (staleness watchdog). Population-at-risk uses aggregate gridded data, not personal information.</td></tr>
+<tr><td><b>Caveats &amp; recommendations</b></td><td>Trust detection over exact magnitude; default life-safety decisions to the worst-case scenario; treat the National Weather Service as authoritative on disagreement; re-validate before relying on the model in a new basin.</td></tr>
+</table>
 
 </body>
 </html>
