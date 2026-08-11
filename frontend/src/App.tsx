@@ -25,6 +25,7 @@ import { ForecastVsReality } from "./components/ForecastVsReality";
 import { RegionalSensorsPanel } from "./components/RegionalSensorsPanel";
 import { DownloadMapsBar } from "./components/DownloadMapsBar";
 import { OfficialFloodMapsPanel } from "./components/OfficialFloodMapsPanel";
+import { TriageStrip } from "./components/TriageStrip";
 import { apiGet, apiRasterUrl } from "./api/client";
 import type { SimState, SimulationScenariosResponse } from "./types/api";
 import { IDF_24HR, buildSimState, rainfallToReturnPeriod } from "./utils/simulation";
@@ -148,22 +149,26 @@ function App() {
         borderBottom: "2px solid var(--border-strong)",
       }}>
         <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-          {/* Terracotta wordmark chip */}
+          {/* Warning-system mark — a wave + rising level, not an "AI" badge */}
           <div style={{
             width: 44, height: 44, borderRadius: 10, flexShrink: 0,
             background: "var(--accent)", color: "#fff",
             display: "flex", alignItems: "center", justifyContent: "center",
-            fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.15rem",
             boxShadow: "var(--shadow-card)", marginTop: 2,
           }}>
-            AI
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M2 15c2 0 2-1.6 4-1.6s2 1.6 4 1.6 2-1.6 4-1.6 2 1.6 4 1.6 2-1.6 4-1.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round"/>
+              <path d="M2 19c2 0 2-1.6 4-1.6s2 1.6 4 1.6 2-1.6 4-1.6 2 1.6 4 1.6 2-1.6 4-1.6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" opacity="0.55"/>
+              <path d="M12 3.2l2.6 4.4h-5.2L12 3.2z" fill="#fff"/>
+              <rect x="11.2" y="8.2" width="1.6" height="2.2" rx="0.8" fill="#fff"/>
+            </svg>
           </div>
           <div>
             <div style={{
-              fontSize: "var(--text-2xs)", fontWeight: 700, letterSpacing: "0.16em",
+              fontSize: "var(--text-2xs)", fontWeight: 800, letterSpacing: "0.14em",
               textTransform: "uppercase", color: "var(--accent-ink)", marginBottom: 2,
             }}>
-              Arizona Flash-Flood Inundation AI
+              Arizona Flash-Flood Inundation AI · Early Warning System
             </div>
             <h1 style={{ margin: 0 }}>Upper Sonoita Creek</h1>
             <div style={{ fontSize: "var(--text-xs)", color: "var(--text-secondary)", marginTop: 3 }}>
@@ -210,6 +215,10 @@ function App() {
           "SIMULATION," even while the mode toggle still said LIVE FORECAST. */}
       {/* Ordered for EOC scanning: alert -> spatial picture -> time-sensitive decision data -> supporting detail */}
       <AlertBanner refreshSignal={refreshSignal} simState={simStateProp} isSimulationMode={mode === "sim"} />
+      {/* The 3-second situational summary — how bad, how long, who's at risk,
+          what to do — sits immediately under our alert so a manager grasps the
+          whole picture before scrolling. Live mode only. */}
+      {mode === "live" && <TriageStrip refreshSignal={refreshSignal} />}
       {/* The authoritative NWS word sits right under our own alert — always
           in live mode, so our model is never read in isolation. */}
       {mode === "live" && <OfficialAlertsPanel refreshSignal={refreshSignal} />}

@@ -1,75 +1,76 @@
 /*
-  AFFI design system — warm editorial theme.
+  AFFI design system — built for the job: a flood emergency-warning tool.
   ---------------------------------------------------------------------------
-  Design goal, tied to the job: a flood manager scans this under time pressure
-  and must trust it like an official document, not a generic dark SaaS panel.
-  So the palette is a warm parchment canvas with a single terracotta chrome
-  accent and serif display type (calm, editorial, credible) — while the
-  life-safety SEMANTIC colors (green / advisory / watch / warning) stay loud
-  and unambiguous, never diluted into the accent.
+  Who uses it: an emergency manager / EOC operator making fast life-safety
+  calls (close roads, evacuate) under time pressure, often not a hydrologist.
+  So the design goals are, in order:
+    1. TRUST  — reads like an authoritative government / weather-service tool.
+    2. CLARITY — the most important answer is the biggest, top-most thing.
+    3. HAZARD COLOR IS INFORMATION — a single, universally-understood
+       escalating ramp (green → yellow → orange → red) carries threat level
+       everywhere; the chrome accent is a separate trust-blue so it never
+       competes with the hazard axis.
+    4. PLAIN LANGUAGE — nothing unexplained; jargon gets an inline "?".
+    5. MOTION WITH MEANING — a live pulse says "this is fresh, real data";
+       an escalation pulse pulls the eye when the threat rises. Never decor.
 
-  Light is the default (bright EOC / daytime). A cohesive warm-dark variant
-  auto-applies for night operations via prefers-color-scheme — same token
-  names, so every panel that reads --bg-card / --border / --text-* reskins
-  automatically in both.
+  Light is the default (bright daytime EOC). A calm deep-slate dark variant
+  auto-applies for dim / night operations via prefers-color-scheme. Same
+  token names, so every panel reskins in both.
 */
 :root {
-  /* --- Warm neutral canvas (parchment, not pure white) --- */
-  --bg-primary: #f4f1e9;      /* page canvas */
-  --bg-secondary: #ebe6da;    /* insets, subtle bands */
-  --bg-card: #fbf9f4;         /* raised panels */
-  --bg-elevated: #ffffff;     /* popovers / highest surface */
-  --border: rgba(60, 50, 34, 0.14);
-  --border-strong: rgba(60, 50, 34, 0.26);
+  /* --- Neutral, professional canvas (cool slate, not warm) --- */
+  --bg-primary: #eceff4;      /* page canvas */
+  --bg-secondary: #e1e6ee;    /* insets / bands */
+  --bg-card: #ffffff;         /* raised panels */
+  --bg-elevated: #ffffff;     /* popovers */
+  --border: rgba(21, 32, 48, 0.12);
+  --border-strong: rgba(21, 32, 48, 0.22);
 
-  --text-primary: #2a2620;    /* warm near-black */
-  --text-secondary: #6d6456;  /* warm gray */
-  --text-faint: #978c7a;
+  --text-primary: #14202f;    /* deep slate */
+  --text-secondary: #566373;
+  --text-faint: #838f9d;
 
-  /* --- Terracotta: the ONE chrome accent (buttons, links, active state,
-     focus). Kept off the alert palette on purpose. The heavily-used
-     --accent-blue token is mapped here so existing chrome turns terracotta
-     without touching 19 call sites. --accent-orange stays a real amber for
-     SIMULATION-mode signaling. --- */
-  --accent: #c05f3c;
-  --accent-hover: #a94e2f;
-  --accent-soft: #f0dccb;
-  --accent-ink: #7a3721;
-  --accent-blue: #c05f3c;     /* legacy name → terracotta chrome */
-  --accent-blue-soft: #f0dccb;
-  --accent-orange: #b9781f;   /* SIMULATION amber (real amber, not accent) */
+  /* --- Chrome accent: a confident, accessible trust-blue (weather.gov /
+     civic feel). Deliberately OFF the green→red hazard axis. The heavily
+     used --accent-blue token maps here so all existing chrome turns this
+     blue with no call-site edits. --- */
+  --accent: #1667d3;
+  --accent-hover: #0f52ac;
+  --accent-soft: #dcebff;
+  --accent-ink: #0d478f;
+  --accent-blue: #1667d3;
+  --accent-blue-soft: #dcebff;
+  --accent-orange: #c9770f;   /* SIMULATION amber (functional, not hazard) */
 
-  /* --- Semantic status — life-safety, kept vivid on the warm ground.
-     Exposed both as tokens and via the .alert-* classes. --- */
-  --status-good: #2f8f4e;
-  --status-good-bg: #e4f0e2;
-  --status-advisory: #c98a12;
-  --status-advisory-bg: #f6ecd2;
-  --status-watch: #cf6a1e;
-  --status-watch-bg: #f7e3d1;
-  --status-warning: #b8342a;
-  --status-warning-bg: #f6dcd8;
-  --accent-green: #2f8f4e;
-  --accent-red: #b8342a;
-  --accent-purple: #7c5aa8;
+  /* --- Hazard ramp: the app's PRIMARY color language. Escalating and
+     universally read: safe → advisory → watch → warning. Each has a bold
+     ink for fills/text and a soft ground for tinted panels. --- */
+  --status-good: #157f42;         --status-good-bg: #dcf1e2;      --status-good-ink: #0c5b2e;
+  --status-advisory: #b07d00;     --status-advisory-bg: #fbefc7;  --status-advisory-ink: #7a5600;
+  --status-watch: #d1631a;        --status-watch-bg: #fbe1cd;     --status-watch-ink: #964213;
+  --status-warning: #cc2b22;      --status-warning-bg: #fbd8d3;   --status-warning-ink: #971b15;
+  --accent-green: #157f42;
+  --accent-red: #cc2b22;
+  --accent-purple: #6b4fa8;
 
-  /* --- Official-government-source signaling. Reserved, never a UI accent,
-     so an NWS/FEMA citation never reads as FloodAI's own assessment. --- */
+  /* --- Official-government-source signaling. Reserved; never a UI accent so
+     an NWS/FEMA citation never reads as FloodAI's own model output. --- */
   --gov-navy: #1f3a5f;
   --gov-navy-light: #34517a;
 
-  /* --- Type --- */
-  --font-display: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* --- Type: one sturdy, highly-legible sans everywhere. Data-forward, not
+     editorial. Big tabular numerals for readouts. --- */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --font-mono: "SF Mono", "JetBrains Mono", ui-monospace, "Cascadia Code", Consolas, monospace;
 
   --text-2xs: 0.68rem;
   --text-xs: 0.74rem;
   --text-sm: 0.82rem;
   --text-base: 0.95rem;
-  --text-lg: 1.16rem;
-  --text-xl: 1.6rem;
-  --text-2xl: 2.15rem;
+  --text-lg: 1.12rem;
+  --text-xl: 1.5rem;
+  --text-2xl: 2.0rem;
 
   --space-1: 4px;
   --space-2: 8px;
@@ -80,46 +81,45 @@
 
   --radius: 10px;
   --radius-sm: 6px;
-  --shadow-card: 0 1px 2px rgba(45, 36, 22, 0.05), 0 6px 18px rgba(45, 36, 22, 0.06);
-  --shadow-pop: 0 8px 30px rgba(45, 36, 22, 0.16);
+  --shadow-card: 0 1px 2px rgba(21, 32, 48, 0.06), 0 4px 14px rgba(21, 32, 48, 0.06);
+  --shadow-pop: 0 8px 30px rgba(21, 32, 48, 0.18);
+
+  --dur-fast: 0.14s;
+  --dur-med: 0.28s;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: #1b1917;      /* warm charcoal, not cold navy */
-    --bg-secondary: #232019;
-    --bg-card: #26231e;
-    --bg-elevated: #2e2a24;
-    --border: rgba(240, 230, 214, 0.12);
-    --border-strong: rgba(240, 230, 214, 0.24);
+    --bg-primary: #0e141c;      /* deep, calm slate for dim EOC */
+    --bg-secondary: #131b26;
+    --bg-card: #172230;
+    --bg-elevated: #1d2938;
+    --border: rgba(150, 172, 202, 0.14);
+    --border-strong: rgba(150, 172, 202, 0.26);
 
-    --text-primary: #ece5d7;
-    --text-secondary: #a89e8c;
-    --text-faint: #7d7261;
+    --text-primary: #e7edf4;
+    --text-secondary: #93a2b5;
+    --text-faint: #6b7a8d;
 
-    --accent: #e0805d;
-    --accent-hover: #ec9679;
-    --accent-soft: #3c2a20;
-    --accent-ink: #f0b79c;
-    --accent-blue: #e0805d;
-    --accent-blue-soft: #3c2a20;
-    --accent-orange: #d99a3c;
+    --accent: #4d97f0;
+    --accent-hover: #6facf5;
+    --accent-soft: #16324f;
+    --accent-ink: #a9cdf7;
+    --accent-blue: #4d97f0;
+    --accent-blue-soft: #16324f;
+    --accent-orange: #e0a13c;
 
-    --status-good: #4cb673;
-    --status-good-bg: #1c3325;
-    --status-advisory: #e0a83c;
-    --status-advisory-bg: #33290f;
-    --status-watch: #e28545;
-    --status-watch-bg: #35220f;
-    --status-warning: #e0574a;
-    --status-warning-bg: #3a1c18;
-    --accent-green: #4cb673;
-    --accent-red: #e0574a;
+    --status-good: #34b567;         --status-good-bg: #123020;      --status-good-ink: #7fd6a1;
+    --status-advisory: #e0b23c;     --status-advisory-bg: #2f2710;  --status-advisory-ink: #f0d089;
+    --status-watch: #ec8646;        --status-watch-bg: #331f11;     --status-watch-ink: #f4b184;
+    --status-warning: #e5544a;      --status-warning-bg: #351916;   --status-warning-ink: #f2988f;
+    --accent-green: #34b567;
+    --accent-red: #e5544a;
 
     --gov-navy: #6b8fbf;
     --gov-navy-light: #86a4cc;
 
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.35);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px rgba(0, 0, 0, 0.34);
     --shadow-pop: 0 8px 30px rgba(0, 0, 0, 0.5);
   }
 }
@@ -130,99 +130,82 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans);
-  /* Fixed-width numerals so cfs/ft/% readouts and tables don't jitter. */
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums;   /* readouts/tables never jitter */
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
-/* Editorial serif display — gives headings and card titles the gravitas of
-   a printed report rather than a dashboard widget. Card titles across the
-   app are <h3>, so they all inherit this in one place. */
+/* Sturdy, confident headings — sans, heavy, tight. Card titles are <h3>, so
+   they all get the same treatment in one place. */
 h1, h2, h3 {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   color: var(--text-primary);
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
-h1 { font-size: var(--text-2xl); letter-spacing: -0.015em; line-height: 1.1; }
-h2 { font-size: var(--text-xl); letter-spacing: -0.01em; }
-h3 { font-size: var(--text-lg); letter-spacing: -0.005em; }
+h1 { font-size: var(--text-2xl); line-height: 1.12; }
+h2 { font-size: var(--text-xl); }
+h3 { font-size: var(--text-lg); }
 
 a { color: var(--accent); text-decoration: none; }
 a:hover { color: var(--accent-hover); text-decoration: underline; }
 
-/* Buttons — restrained, terracotta, tactile. Applies to the plain <button>s
-   scattered through the app that only set layout/inline styles. */
-button {
-  font-family: var(--font-sans);
-  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
-}
-button:focus-visible,
-a:focus-visible,
-[tabindex]:focus-visible {
+button { font-family: var(--font-sans); transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, color var(--dur-fast) ease, transform var(--dur-fast) ease; }
+button:active { transform: translateY(1px); }
+button:focus-visible, a:focus-visible, [tabindex]:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Section zoning — a tracked-out serif-adjacent eyebrow that bands the wall
-   of panels into scannable groups (live decision support / history /
-   reference) so a manager can jump straight to what they need. */
+/* Section zoning — a clear, tracked-out band that groups the panels so a
+   manager jumps straight to what they need (decision support / history /
+   reference) instead of scrolling a wall. */
 .zone-label {
-  font-family: var(--font-sans);
   font-size: var(--text-2xs);
-  font-weight: 700;
-  letter-spacing: 0.16em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--accent-ink);
+  color: var(--text-secondary);
   margin: var(--space-6) 0 var(--space-3);
   padding-bottom: var(--space-2);
-  border-bottom: 1.5px solid var(--border);
+  border-bottom: 2px solid var(--border);
   display: flex;
   align-items: center;
   gap: var(--space-2);
 }
 .zone-label::before {
   content: "";
-  width: 18px;
-  height: 2px;
+  width: 16px; height: 3px; border-radius: 2px;
   background: var(--accent);
   display: inline-block;
 }
 .zone-label:first-of-type { margin-top: var(--space-4); }
 
 /* ---- Alert hero ----
-   Flat, confident, document-like — a bold left rail in the semantic color
-   plus a tinted ground, rather than a garish full-bleed gradient. Loud
-   enough for life-safety, calm enough to sit at the top of an editorial
-   layout. */
+   Bold semantic fill so threat level reads instantly. GREEN/ADVISORY/WATCH
+   are confident but not alarming; WARNING is a full saturated red that
+   commands the screen and gently pulses (see keyframes) so a rising threat
+   pulls the eye even if the operator was looking elsewhere. */
 .alert-banner {
-  padding: 18px 22px;
+  padding: 16px 20px;
   border-radius: var(--radius);
   font-weight: 600;
-  font-size: 1.12rem;
-  border: 1px solid var(--border);
-  border-left: 6px solid var(--text-secondary);
+  font-size: 1.1rem;
+  border: 1px solid transparent;
   box-shadow: var(--shadow-card);
 }
-.alert-banner strong { font-family: var(--font-display); font-weight: 700; }
+.alert-banner strong { font-weight: 800; }
 
-.alert-green    { background: var(--status-good-bg);     border-left-color: var(--status-good);     color: var(--text-primary); }
-.alert-advisory { background: var(--status-advisory-bg); border-left-color: var(--status-advisory); color: var(--text-primary); }
-.alert-watch    { background: var(--status-watch-bg);    border-left-color: var(--status-watch);    color: var(--text-primary); }
-.alert-warning  { background: var(--status-warning-bg);  border-left-color: var(--status-warning);  color: var(--text-primary); }
-/* WARNING is the one case that keeps a fully saturated fill — it must
-   dominate the screen the instant it appears. */
-.alert-warning {
-  background: linear-gradient(180deg, #c0392b, #a5302400);
-  background-color: var(--status-warning-bg);
-}
+.alert-green    { background: var(--status-good);     color: #fff; }
+.alert-advisory { background: var(--status-advisory); color: #1a1300; }
+.alert-watch    { background: var(--status-watch);    color: #fff; }
+.alert-warning  { background: var(--status-warning);  color: #fff; animation: alertPulse 2s ease-in-out infinite; }
 
 table { border-collapse: collapse; }
 table td, table th { padding: 6px 10px; }
 
-/* A shared raised-panel look for anything that opts in with class="panel".
-   Existing panels style themselves inline via the tokens above and need no
-   change; this is here for new markup (the command bar, triage strip). */
+/* Shared raised-panel look for new markup that opts in. Existing panels
+   style themselves inline via the tokens and need no change. */
 .panel {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -230,6 +213,26 @@ table td, table th { padding: 6px 10px; }
   box-shadow: var(--shadow-card);
 }
 
+/* ---- Motion with meaning ---- */
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: 0.35; transform: scale(0.82); }
+}
+@keyframes alertPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(204, 43, 34, 0.0), var(--shadow-card); }
+  50%      { box-shadow: 0 0 0 5px rgba(204, 43, 34, 0.28), var(--shadow-card); }
+}
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.live-dot {
+  display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  background: var(--status-good); flex-shrink: 0;
+  animation: livePulse 2.2s ease-in-out infinite;
+}
+.rise-in { animation: fadeSlideIn var(--dur-med) ease both; }
+
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
+  *, .alert-warning, .live-dot, .rise-in { animation: none !important; transition: none !important; }
 }
