@@ -169,7 +169,7 @@ export function ChatAssistant() {
             </button>
           </form>
           <div style={{ fontSize: "0.66rem", color: "var(--text-faint)", padding: "0 12px 10px", textAlign: "center" }}>
-            AI assistant · can be wrong · not a substitute for NWS / EOC / 911
+            Explains the dashboard · not a substitute for NWS / EOC / 911
           </div>
         </div>
       )}
