@@ -5,9 +5,20 @@ description: Regenerate the AFFI whitepaper's PDF and HTML renders from the curr
 
 # Regenerate whitepaper PDF/HTML
 
-The whitepaper's source of truth is `docs/AFFI_whitepaper_<date>.md`. The `.pdf`
-and `.html` next to it are generated renders, not hand-edited — they go stale
-the moment the `.md` changes unless this is re-run.
+There are TWO whitepaper documents in `docs/`, on purpose:
+
+1. **`docs/AFFI_White_Paper.pdf` / `.html`** — the shareable, presentation-ready
+   version. Its source is a hand-built, professionally-designed HTML file
+   (`docs/AFFI_White_Paper.html`) with seven inline-SVG diagrams. It reads as a
+   single clean current document for a first-time reader — no revision history,
+   no change-tracking boxes. Edit the `.html` directly, then re-render the PDF
+   with weasyprint (step 3 below). Do NOT regenerate this one from markdown.
+2. **`docs/AFFI_whitepaper_<date>.md` / `.pdf` / `.html`** — the fuller internal
+   technical record, including the honest engineering changelog. This is the one
+   the markdown→pandoc→weasyprint flow below regenerates.
+
+The `.pdf`/`.html` renders are generated, not hand-edited — they go stale the
+moment their source changes unless this is re-run.
 
 ## Requirements (install once, no sudo needed)
 

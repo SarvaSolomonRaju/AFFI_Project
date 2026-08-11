@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>AFFI White Paper</title>
+<style>
+  @page {
+    size: Letter; margin: 2.0cm 1.9cm 2.2cm 1.9cm;
+    @bottom-left { content: "NextGen ENGINEERING"; font-family: Georgia, serif; font-size: 8pt; font-weight: bold; color: #4F7942; }
+    @bottom-center { content: counter(page); font-family: Georgia, serif; font-size: 9pt; color: #444; }
+    @bottom-right { content: "AFFI"; font-family: Georgia, serif; font-size: 10pt; font-weight: bold; color: #1B3A5C; }
+  }
+  @page :first { @bottom-left { content: ""; } @bottom-right { content: ""; } @bottom-center { content: ""; } }
+  * { box-sizing: border-box; }
+  body { font-family: "Times New Roman", Georgia, serif; font-size: 10.4pt; line-height: 1.44; color: #1a1a1a; }
+  h1,h2,h3 { font-family: Georgia, "Times New Roman", serif; }
+  p { margin: 6px 0; text-align: justify; }
+
+  .cover-box { border: 2px solid #1B3A5C; padding: 26px 28px; text-align: center; margin: 8px 0 20px; }
+  .cover-box h1 { color: #1B3A5C; font-size: 20pt; margin: 4px 0; line-height: 1.15; }
+  .cover-box .sub { color: #1B3A5C; font-size: 12pt; font-weight: bold; margin: 6px 0 10px; }
+  .cover-box hr { border: none; border-top: 2px solid #1B3A5C; margin: 12px 34px; }
+  .cover-box .tagline { font-size: 10.5pt; color: #1B3A5C; margin: 2px 0 14px; }
+  .cover-box .meta { font-size: 9.4pt; margin: 5px 0; }
+  .scope-box { border: 1.5px solid #1B3A5C; background: #EAF1FA; padding: 12px 16px; font-size: 9.6pt; margin-bottom: 6px; }
+
+  h2.section { color: #1B3A5C; font-size: 13.5pt; border-bottom: 2.5px solid #1B3A5C; padding-bottom: 4px; margin: 22px 0 10px; }
+  h3.subsection { color: #1B3A5C; font-size: 11pt; margin: 15px 0 5px; }
+  .lead-tag { font-weight: bold; color: #16304A; }
+
+  caption.tblcap, .tblcap { display:block; font-weight: bold; text-align: center; font-size: 9.7pt; margin: 12px 0 4px; color:#16304A; }
+  table.data { border-collapse: collapse; width: 100%; margin: 4px 0 12px; font-size: 8.9pt; }
+  table.data th { background: #1B3A5C; color: #fff; padding: 5px 8px; text-align: left; font-size: 8.6pt; }
+  table.data td { padding: 5px 8px; border-bottom: 1px solid #ccc; vertical-align: top; }
+  table.data tr:nth-child(even) td { background: #F3F6F9; }
+
+  .deliverable-box { background: #EAF3E9; border-left: 4px solid #4F7942; padding: 7px 12px; margin: 5px 0; font-size: 9.2pt; }
+  .deliverable-box b { color: #2F5233; }
+  .status-line { font-style: italic; margin: 7px 0 10px; font-size: 9.7pt; }
+  .policy-box { background: #FCF3D9; border-left: 4px solid #D4A017; padding: 10px 14px; margin: 10px 0; font-size: 9.6pt; }
+  .policy-box b.l { color: #8a6200; }
+  .design-box { background: #EAF1FA; border: 1.5px solid #1B3A5C; padding: 10px 14px; margin: 10px 0; font-size: 9.6pt; }
+
+  ul,ol { margin: 4px 0; padding-left: 20px; }
+  li { margin: 2px 0; }
+  a { color: #1a4a7a; text-decoration: none; }
+  .page-break { page-break-before: always; }
+
+  /* ---- Figure system ---- */
+  figure.fig { margin: 14px 0 16px; page-break-inside: avoid; }
+  figure.fig svg { display: block; width: 100%; height: auto; }
+  figure.fig figcaption { font-size: 8.8pt; color: #444; margin-top: 7px; text-align: center; line-height: 1.35; }
+  figure.fig figcaption b { color: #1B3A5C; }
+  .fig-title { font-size: 9pt; font-weight: bold; color: #1B3A5C; text-align: center; margin-bottom: 4px; letter-spacing: 0.02em; }
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<div class="cover-box">
+  <h1>Arizona Flash Flood Inundation<br>AI Early Warning System</h1>
+  <div class="sub">(AFFI)</div>
+  <p class="tagline">A Physics-Guided Artificial Intelligence Framework for<br>Real-Time Flood Inundation Forecasting in Rural Southern Arizona</p>
+  <hr>
+  <p class="meta"><b>Prepared by:</b> Solman Raju Sarva, MSc — AI &amp; Hydrology Researcher, and<br>William D. O'Brien, PE, CFM — Principal Engineer, NextGen Engineering Inc.</p>
+  <p class="meta"><b>Pilot Watershed:</b> Upper Sonoita Creek Watershed (HUC 150503010204), near Patagonia, Santa Cruz County, AZ</p>
+  <p class="meta"><b>Anchor Training Watershed:</b> Babocomari River (USGS 09471000), Southern Arizona</p>
+</div>
+
+<div class="scope-box">
+  <b>SCOPE:</b> This white paper presents a transferable technical platform for flood-inundation early warning, first deployed on the <b>Upper Sonoita Creek Watershed (HUC 150503010204)</b> in Santa Cruz County, Arizona. The architecture, methodology, and deliverables described herein are designed to be transferable to any watershed in Arizona or the United States with minimal reconfiguration. This document is intended to build collaboration for the full, multi-watershed development of AFFI.
+</div>
+
+<h2 class="section">1. Executive Summary</h2>
+<p>Flash floods are the deadliest natural hazard in Arizona, killing an average of 14 people per year and causing $180 million in annual property damage. The fundamental problem is not the flood itself — it is the <b>time delay between a storm forecast and knowing where to warn people</b>. Traditional physics-based flood simulation tools require four to six hours to produce a flood-inundation map. A monsoon flash flood in Southern Arizona can arrive in under two hours. That gap between warning and impact is where lives are lost.</p>
+
+<figure class="fig">
+  <div class="fig-title">FIGURE 1 &nbsp;·&nbsp; WHY TIMING IS THE PROBLEM</div>
+  <svg viewBox="0 0 920 240" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <!-- timeline base -->
+    <line x1="70" y1="60" x2="850" y2="60" stroke="#c9c9c9" stroke-width="2"/>
+    <!-- storm start marker -->
+    <circle cx="90" cy="60" r="6" fill="#1B3A5C"/>
+    <text x="90" y="40" text-anchor="middle" font-size="12" fill="#1B3A5C" font-weight="bold">Storm forms</text>
+    <text x="90" y="86" text-anchor="middle" font-size="11" fill="#555">Hour 0</text>
+    <!-- flood arrival marker -->
+    <line x1="470" y1="30" x2="470" y2="215" stroke="#B03A2E" stroke-width="2" stroke-dasharray="5 4"/>
+    <text x="470" y="24" text-anchor="middle" font-size="12" fill="#B03A2E" font-weight="bold">Flood hits the road — ~2 hours</text>
+    <!-- water glyph at flood line -->
+    <path d="M452 60 q9 -9 18 0 q9 9 18 0" stroke="#2E86C1" stroke-width="2.5" fill="none"/>
+
+    <!-- AFFI bar (green, tiny) -->
+    <rect x="90" y="108" width="26" height="26" rx="4" fill="#4F7942"/>
+    <text x="128" y="126" font-size="12.5" fill="#2F5233" font-weight="bold">AFFI: a flood map in ~60 seconds</text>
+    <text x="128" y="142" font-size="10.5" fill="#555">— leaving hours to act before the water arrives.</text>
+
+    <!-- Traditional bar (red, long, past flood line) -->
+    <rect x="90" y="168" width="620" height="26" rx="4" fill="#E4B7B0"/>
+    <rect x="90" y="168" width="620" height="26" rx="4" fill="none" stroke="#B03A2E" stroke-width="1.5"/>
+    <text x="400" y="186" text-anchor="middle" font-size="11.5" fill="#7a2318" font-weight="bold">Traditional physics simulation (HEC-RAS): 4–6 hours</text>
+    <text x="718" y="186" font-size="11" fill="#B03A2E" font-weight="bold">✕ too late</text>
+  </svg>
+  <figcaption><b>The core idea in one picture.</b> A conventional flood simulation does not finish until hours after the water has already reached the road. AFFI produces the same kind of map in about a minute — turning a forecast into an actionable warning while there is still time to close roads and move people.</figcaption>
+</figure>
+
+<p>The Arizona Flash Flood Inundation AI Early Warning System (AFFI) closes this gap. AFFI is a <b>six-stage, physics-guided artificial-intelligence pipeline</b> that ingests real-time weather-forecast data and delivers a probabilistic flood-inundation map to authorized government personnel — at their phone or Emergency Operations Center (EOC) — in about 60 seconds, roughly 360 times faster than current methods, with accuracy grounded in federal engineering benchmarks. Table ES-1 summarizes the benefits.</p>
+
+<p>AFFI is best understood as a <b>transferable platform, not a single-watershed demonstration</b>. Its meteorological interface, hydrologic model, hydraulic flood library, probabilistic engine, benchmarking layer, alert logic, and operational dashboard are all watershed-agnostic by design; adding a new watershed is a data-substitution exercise, not a system rebuild (Section 8). To improve robustness and transferability, the hydrologic AI is first trained on the data-rich <b>Babocomari River</b> gauge record (a long-instrumented Southern Arizona basin) to learn the fundamentals of desert flash-flood behavior, then adapted to the specific target watershed.</p>
+
+<p>All primary data sources are publicly available from federal agencies at no licensing cost, and the reference hydraulic-modeling software (HEC-RAS) is publicly available. The system is organized into six tasks, each with specific, verifiable deliverables (Section 5).</p>
+
+<span class="tblcap">Table ES-1: Benefits of AFFI</span>
+<table class="data">
+<tr><th>Metric</th><th>Current Capability</th><th>AFFI</th><th>Improvement</th></tr>
+<tr><td>Time to flood map</td><td>4–6 hours (HEC-RAS)</td><td>&lt; 60 seconds</td><td>360× faster</td></tr>
+<tr><td>Watersheds covered</td><td>Gauged only (~12% of AZ)</td><td>Transferable to any AZ watershed</td><td>Statewide applicability</td></tr>
+<tr><td>Forecast lead time</td><td>0–2 hours</td><td>Up to 7 days</td><td>84× longer</td></tr>
+<tr><td>Forecast uncertainty</td><td>1 deterministic run</td><td>31-member ensemble → best / likely / worst</td><td>Uncertainty quantified</td></tr>
+<tr><td>Cost per forecast</td><td>~$2,400 (EOC activation)</td><td>~$0.04 (cloud compute)</td><td>60,000× cheaper</td></tr>
+<tr><td>Ungauged-basin coverage</td><td>Requires stream-gauge calibration</td><td>Any Arizona watershed (by design)</td><td>Ungauged-ready</td></tr>
+</table>
+
+<div class="page-break"></div>
+<h2 class="section">2. Problem Statement: Flash Flooding in Rural Southern Arizona</h2>
+<h3 class="subsection">2.1 Human Cost</h3>
+<p>Between 2000 and 2023, flash floods killed 287 people in Arizona — more than tornadoes, hurricanes, and earthquakes combined over the same period (NOAA Storm Data, 2023). Most fatalities occurred in vehicles, where drivers encountered flooded roadways with little or no advance warning.</p>
+<p>The pilot area for AFFI is the Upper Sonoita Creek watershed near Patagonia, in Santa Cruz County, Arizona (HUC 150503010204). It drains 55.4 mi² (143.6 km²) of semi-arid terrain and has experienced 12 major flood events since 1980, with peak flows exceeding the 50-year return period on three occasions. State Route 82 near Patagonia — the only evacuation route for 3,200 people — has been rendered impassable by flooding on multiple occasions with little or no advance warning to emergency managers.</p>
+<p><b>Example — the 2006 Santa Cruz County Monsoon Flood:</b> a single monsoon event caused $12 million in infrastructure damage, displaced 340 residents, and closed State Route 82 for 72 hours. Emergency managers received no advance flood-inundation map; the response was entirely reactive. This event is the baseline scenario AFFI is designed to mitigate.</p>
+
+<h3 class="subsection">2.2 Infrastructure and Economic Cost</h3>
+<p>The economic cost of flash flooding in Arizona averages $180 million annually in direct damage to roads, bridges, utilities, and structures (FEMA, 2022). Indirect costs include emergency-response mobilization (~$2,400/hour for a county EOC), post-flood debris removal ($180,000–$450,000 per major event), long-term infrastructure repair ($1.2M–$8M per bridge or road segment), and agricultural losses ($15M–$40M per severe monsoon season in Southern Arizona).</p>
+
+<h3 class="subsection">2.3 The Technology Gap</h3>
+<p>Southern Arizona's rural flash-flood problem is uniquely difficult. The region contains hundreds of ephemeral washes and arroyos — channels that are dry for 300-plus days per year but can carry catastrophic flows within minutes of a monsoon rain cell. These channels are ungauged, ephemeral, braided, and respond rapidly to rainfall, with times of concentration as short as 15–30 minutes for small sub-watersheds. Existing operational tools — NOAA's National Water Model, FEMA Flood Insurance Rate Maps, Google Flood Hub — were designed for large, gauged river systems. They provide valuable national-scale information but do not address real-time, event-specific inundation for rural, ungauged, ephemeral arroyos. <b>No existing operational system provides real-time, event-specific flood-inundation maps for ungauged rural arroyos in Southern Arizona with lead times sufficient for emergency-management action. AFFI fills this gap.</b></p>
+
+<h3 class="subsection">2.4 The Climate Trend</h3>
+<p>Climate projections for the Southwest United States indicate a 15–40% increase in extreme-precipitation intensity during monsoon events by 2050 (IPCC AR6, 2021). Flood events that currently occur once every 50 years are projected to occur once every 20–30 years by mid-century. The window for investing in flood-inundation early-warning infrastructure — before these events become routine — is now.</p>
+
+<h2 class="section">3. Existing Systems and Their Limitations</h2>
+<p>A review of existing flood-inundation forecasting systems confirms that none adequately addresses the rural Southern Arizona flash-flood problem. This is not a criticism — each system is excellent for its intended purpose. It is a demonstration that a specific gap exists which none of them fills.</p>
+<span class="tblcap">Table 1: Comparison of AFFI with Other Flood-Inundation Mapping Systems</span>
+<table class="data">
+<tr><th>System</th><th>Forecast Type</th><th>Lead Time</th><th>Ungauged Basins</th><th>Rural Arroyos</th><th>Real-Time Maps</th></tr>
+<tr><td><b>AFFI</b></td><td>Probabilistic inundation maps</td><td>Up to 7 days</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>NOAA NWM</td><td>Streamflow forecast</td><td>Up to 7 days</td><td>Limited</td><td>No</td><td>No</td></tr>
+<tr><td>Google Flood Hub</td><td>Flood forecast + maps</td><td>Up to 7 days</td><td>No</td><td>No</td><td>Partial</td></tr>
+<tr><td>FEMA FIRM</td><td>Static hazard zones</td><td>None (static)</td><td>Partial</td><td>Partial</td><td>No</td></tr>
+<tr><td>First Street Foundation</td><td>Risk scoring</td><td>None (static)</td><td>Partial</td><td>No</td><td>No</td></tr>
+<tr><td>FLASH (RoyalHaskoningDHV)</td><td>Short-lead flood alerts</td><td>Hours to 1 day</td><td>No</td><td>No</td><td>Partial</td></tr>
+</table>
+<p><b>NOAA National Water Model:</b> an outstanding national-scale streamflow forecasting system, but it depends on stream-gauge calibration, is not designed for ephemeral channels, and produces streamflow forecasts rather than spatial inundation maps. <b>Google Flood Hub:</b> excellent for gauged rivers globally, but does not cover ungauged basins or ephemeral arroyos; Arizona coverage is limited to major perennial rivers. <b>FEMA FIRM:</b> static 100- and 500-year hazard zones — not event-specific or real-time. <b>First Street Foundation:</b> property-level risk scores — static, not for emergency operations. <b>FLASH:</b> short-lead radar-based alerts — no spatial inundation maps at the resolution rural Arizona needs.</p>
+
+<div class="page-break"></div>
+<h2 class="section">4. Technical Solution: The AFFI Architecture</h2>
+<h3 class="subsection">4.1 System Overview — The Physical Pipeline</h3>
+<p>AFFI follows the physically correct sequence for flood prediction — the same sequence by which rainfall actually becomes a flood. Each step is handled by the most appropriate method: physics-based numerical weather prediction where physics is well understood, artificial intelligence where it has been proven to match or exceed physics-based accuracy at a fraction of the computational cost, and established engineering procedure (SCS Curve Number, hydraulic geometry, federal design-storm benchmarks) where those give a fast, transparent, defensible result.</p>
+
+<figure class="fig">
+  <div class="fig-title">FIGURE 2 &nbsp;·&nbsp; HOW AFFI TURNS A WEATHER FORECAST INTO A WARNING — THE SIX STAGES</div>
+  <svg viewBox="0 0 960 300" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <defs>
+      <marker id="ah" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4F7942"/></marker>
+    </defs>
+    <!-- 60 second banner -->
+    <rect x="70" y="8" width="820" height="26" rx="13" fill="#EAF3E9" stroke="#4F7942" stroke-width="1.2"/>
+    <text x="480" y="26" text-anchor="middle" font-size="12" fill="#2F5233" font-weight="bold">Total time, weather forecast → flood-inundation map on a phone: about 60 seconds</text>
+
+    <!-- helper: 6 stage cards -->
+    <!-- card geometry: width 132, gap; y 70 height 150 -->
+    <!-- Stage 1 -->
+    <g>
+      <rect x="66" y="70" width="132" height="150" rx="8" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+      <rect x="66" y="70" width="132" height="30" rx="8" fill="#1B3A5C"/>
+      <text x="132" y="90" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">1 · Weather</text>
+      <!-- cloud+rain icon -->
+      <g transform="translate(132,132)">
+        <ellipse cx="0" cy="-6" rx="26" ry="15" fill="#DCE9F5"/><circle cx="-16" cy="-2" r="11" fill="#DCE9F5"/><circle cx="15" cy="-3" r="12" fill="#DCE9F5"/>
+        <line x1="-14" y1="12" x2="-18" y2="24" stroke="#2E86C1" stroke-width="2"/><line x1="0" y1="12" x2="-4" y2="24" stroke="#2E86C1" stroke-width="2"/><line x1="14" y1="12" x2="10" y2="24" stroke="#2E86C1" stroke-width="2"/>
+      </g>
+      <text x="132" y="182" text-anchor="middle" font-size="8.6" fill="#333">31-member GFS</text>
+      <text x="132" y="194" text-anchor="middle" font-size="8.6" fill="#333">rainfall forecast</text>
+      <text x="132" y="210" text-anchor="middle" font-size="8.2" fill="#777" font-style="italic">→ rain on the watershed</text>
+    </g>
+    <!-- Stage 2 -->
+    <g>
+      <rect x="214" y="70" width="132" height="150" rx="8" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+      <rect x="214" y="70" width="132" height="30" rx="8" fill="#1B3A5C"/>
+      <text x="280" y="90" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">2 · Hydrology</text>
+      <!-- mountain + flow icon -->
+      <g transform="translate(280,130)">
+        <path d="M-30 18 L-8 -14 L4 4 L16 -20 L30 18 Z" fill="#E4EFE0" stroke="#4F7942" stroke-width="1.4"/>
+        <path d="M-30 20 q15 8 30 0 q15 -8 30 0" stroke="#2E86C1" stroke-width="2.4" fill="none"/>
+      </g>
+      <text x="280" y="182" text-anchor="middle" font-size="8.6" fill="#333">AI hurdle model</text>
+      <text x="280" y="194" text-anchor="middle" font-size="8.6" fill="#333">→ peak discharge</text>
+      <text x="280" y="210" text-anchor="middle" font-size="8.2" fill="#777" font-style="italic">→ how much water</text>
+    </g>
+    <!-- Stage 3 -->
+    <g>
+      <rect x="362" y="70" width="132" height="150" rx="8" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+      <rect x="362" y="70" width="132" height="30" rx="8" fill="#1B3A5C"/>
+      <text x="428" y="90" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">3 · Hydraulics</text>
+      <!-- map with water icon -->
+      <g transform="translate(428,130)">
+        <rect x="-28" y="-18" width="56" height="36" rx="3" fill="#EFEAE0" stroke="#8a7a5c" stroke-width="1.2"/>
+        <path d="M-28 6 q10 -10 20 0 q10 10 20 0 q8 -8 16 0 v12 h-56 Z" fill="#5DADE2"/>
+      </g>
+      <text x="428" y="182" text-anchor="middle" font-size="8.6" fill="#333">Flood-map library</text>
+      <text x="428" y="194" text-anchor="middle" font-size="8.6" fill="#333">→ depth &amp; extent</text>
+      <text x="428" y="210" text-anchor="middle" font-size="8.2" fill="#777" font-style="italic">→ how deep, where</text>
+    </g>
+    <!-- Stage 4 -->
+    <g>
+      <rect x="510" y="70" width="132" height="150" rx="8" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+      <rect x="510" y="70" width="132" height="30" rx="8" fill="#1B3A5C"/>
+      <text x="576" y="90" text-anchor="middle" font-size="10.4" fill="#fff" font-weight="bold">4 · Probability</text>
+      <!-- stacked maps -->
+      <g transform="translate(576,130)">
+        <rect x="-22" y="-14" width="40" height="28" rx="3" fill="#CFE0F0" stroke="#1B3A5C" stroke-width="1"/>
+        <rect x="-14" y="-8" width="40" height="28" rx="3" fill="#9CC3E6" stroke="#1B3A5C" stroke-width="1"/>
+        <rect x="-6" y="-2" width="40" height="28" rx="3" fill="#5DADE2" stroke="#1B3A5C" stroke-width="1"/>
+      </g>
+      <text x="576" y="182" text-anchor="middle" font-size="8.6" fill="#333">Best / likely / worst</text>
+      <text x="576" y="194" text-anchor="middle" font-size="8.6" fill="#333">→ chance of flooding</text>
+      <text x="576" y="210" text-anchor="middle" font-size="8.2" fill="#777" font-style="italic">→ how confident</text>
+    </g>
+    <!-- Stage 5 -->
+    <g>
+      <rect x="658" y="70" width="132" height="150" rx="8" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+      <rect x="658" y="70" width="132" height="30" rx="8" fill="#1B3A5C"/>
+      <text x="724" y="90" text-anchor="middle" font-size="10.2" fill="#fff" font-weight="bold">5 · Benchmark</text>
+      <!-- gauge/dial -->
+      <g transform="translate(724,130)">
+        <path d="M-22 12 A22 22 0 0 1 22 12" fill="none" stroke="#1B3A5C" stroke-width="2.4"/>
+        <line x1="0" y1="12" x2="12" y2="-8" stroke="#B03A2E" stroke-width="2.4"/><circle cx="0" cy="12" r="3" fill="#1B3A5C"/>
+      </g>
+      <text x="724" y="182" text-anchor="middle" font-size="8.6" fill="#333">vs. design storms</text>
+      <text x="724" y="194" text-anchor="middle" font-size="8.6" fill="#333">→ "like a 25-yr flood"</text>
+      <text x="724" y="210" text-anchor="middle" font-size="8.2" fill="#777" font-style="italic">→ how rare</text>
+    </g>
+    <!-- Stage 6 -->
+    <g>
+      <rect x="806" y="70" width="132" height="150" rx="8" fill="#fff" stroke="#B03A2E" stroke-width="1.8"/>
+      <rect x="806" y="70" width="132" height="30" rx="8" fill="#B03A2E"/>
+      <text x="872" y="90" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">6 · Alert</text>
+      <!-- phone/bell -->
+      <g transform="translate(872,130)">
+        <rect x="-13" y="-20" width="26" height="40" rx="4" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+        <path d="M0 -12 a7 7 0 0 1 7 7 v6 l3 4 h-20 l3 -4 v-6 a7 7 0 0 1 7 -7 Z" fill="#D4A017"/>
+      </g>
+      <text x="872" y="182" text-anchor="middle" font-size="8.6" fill="#333">EOC dashboard</text>
+      <text x="872" y="194" text-anchor="middle" font-size="8.6" fill="#333">+ phone alert</text>
+      <text x="872" y="210" text-anchor="middle" font-size="8.2" fill="#777" font-style="italic">→ who to warn</text>
+    </g>
+    <!-- arrows -->
+    <g stroke="#4F7942" stroke-width="2.4" marker-end="url(#ah)">
+      <line x1="200" y1="145" x2="211" y2="145"/><line x1="348" y1="145" x2="359" y2="145"/>
+      <line x1="496" y1="145" x2="507" y2="145"/><line x1="644" y1="145" x2="655" y2="145"/>
+      <line x1="792" y1="145" x2="803" y2="145"/>
+    </g>
+    <!-- bottom plain-language rail -->
+    <text x="480" y="250" text-anchor="middle" font-size="10.5" fill="#1B3A5C" font-weight="bold">Rainfall  →  how much water  →  how deep and where  →  how likely  →  how rare  →  who to warn</text>
+  </svg>
+  <figcaption><b>The whole system at a glance.</b> Each stage answers one plain question (italic line at the bottom of each card). The blue stages are computation; only Stages 2–3 use AI — Stages 1, 5, and 6 are physics and established engineering, which keeps the system interpretable and trustworthy to government reviewers.</figcaption>
+</figure>
+
+<span class="tblcap">Table 2: The Six Stages of the AFFI Architecture</span>
+<table class="data">
+<tr><th>Stage</th><th>Input</th><th>Output</th><th>Method</th><th>Time</th></tr>
+<tr><td><b>1 · Meteorology</b></td><td>GFS ensemble forecast</td><td>Mean Areal Precipitation</td><td>Area-weighted averaging (physics/NWP)</td><td>~5 s</td></tr>
+<tr><td><b>2 · Hydrology</b></td><td>Rainfall time series + attributes</td><td>Peak discharge</td><td>Hurdle model: LSTM gate → XGBoost</td><td>~8 s</td></tr>
+<tr><td><b>3 · Hydraulics</b></td><td>Discharge + terrain (DEM)</td><td>Flood depth &amp; extent raster</td><td>Discharge-indexed FEMA/USGS library</td><td>~5 s</td></tr>
+<tr><td><b>4 · Probabilistic</b></td><td>P10 / P50 / P90 rainfall</td><td>Best / likely / worst + probability</td><td>SCS-CN → discharge → library lookup</td><td>~2 s</td></tr>
+<tr><td><b>5 · Benchmarking</b></td><td>Predicted rainfall / discharge</td><td>Return-period classification (2–500 yr)</td><td>NOAA Atlas 14 + USGS LP-III</td><td>~1 s</td></tr>
+<tr><td><b>6 · Alert</b></td><td>All outputs</td><td>Alert packet + dashboard</td><td>Rule-based logic + FastAPI / React</td><td>~1 s</td></tr>
+</table>
+
+<h3 class="subsection">4.2 Why This Architecture and Not Others</h3>
+<p>This six-stage design is the only architecture that satisfies all five operational requirements simultaneously: <b>speed</b> (~60 s, required for flash-flood warning), <b>accuracy</b> (grounded in federal benchmarks, required for government trust), <b>transferability</b> (universal code, watershed-specific data, required for rural and statewide deployment), <b>interpretability</b> (each stage has physical meaning, required for regulatory acceptance), and <b>uncertainty quantification</b> (probabilistic output, required for risk-based decisions). A single end-to-end deep-learning model (rainfall directly to flood map) fails on transferability — it memorizes one watershed. A pure physics model fails on speed. The staged hybrid is the only design that passes all five tests.</p>
+
+<div class="page-break"></div>
+<h3 class="subsection">4.3 Stage 1 — Meteorological Interface</h3>
+<p><b>What it does:</b> ingests a 31-member ensemble rainfall forecast from NOAA's Global Forecast System and computes <b>Mean Areal Precipitation (MAP)</b> — the spatially averaged rainfall over the watershed — for horizons of 1, 3, 6, 12, 24, 48, 72, and 168 hours.</p>
+<p><b>Why it matters:</b> a single rain gauge tells you the rain at one point; a watershed responds to the average rain across its whole area. MAP is the physically correct input to a hydrologic model. Using point rainfall instead is a common error that leads to large over- or under-prediction.</p>
+
+<figure class="fig">
+  <div class="fig-title">FIGURE 3 &nbsp;·&nbsp; WHY WE AVERAGE RAIN OVER THE WHOLE WATERSHED</div>
+  <svg viewBox="0 0 900 200" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <!-- watershed blob -->
+    <path d="M120 150 C110 90 180 40 260 55 C320 30 420 45 440 95 C500 100 500 165 430 170 C360 195 180 195 120 150 Z" fill="#EAF3E9" stroke="#4F7942" stroke-width="1.6"/>
+    <!-- five sample points with different rain values -->
+    <g font-size="10" text-anchor="middle">
+      <circle cx="290" cy="100" r="7" fill="#1B3A5C"/><text x="290" y="82" fill="#1B3A5C" font-weight="bold">2.0"</text><text x="290" y="122" fill="#555" font-size="8.5">center (30%)</text>
+      <circle cx="230" cy="70" r="6" fill="#2E86C1"/><text x="230" y="56" fill="#2E86C1">0.5"</text>
+      <circle cx="360" cy="80" r="6" fill="#2E86C1"/><text x="368" y="66" fill="#2E86C1">1.0"</text>
+      <circle cx="220" cy="140" r="6" fill="#2E86C1"/><text x="210" y="158" fill="#2E86C1">0.3"</text>
+      <circle cx="380" cy="140" r="6" fill="#2E86C1"/><text x="392" y="156" fill="#2E86C1">0.8"</text>
+    </g>
+    <text x="280" y="192" text-anchor="middle" font-size="9" fill="#666" font-style="italic">Rain never falls evenly across the basin.</text>
+    <!-- arrow to result -->
+    <line x1="510" y1="110" x2="580" y2="110" stroke="#4F7942" stroke-width="2.4" marker-end="url(#ah2)"/>
+    <defs><marker id="ah2" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4F7942"/></marker></defs>
+    <!-- result card -->
+    <rect x="595" y="60" width="270" height="100" rx="8" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+    <text x="730" y="86" text-anchor="middle" font-size="11" fill="#1B3A5C" font-weight="bold">Mean Areal Precipitation</text>
+    <text x="730" y="112" text-anchor="middle" font-size="15" fill="#2F5233" font-weight="bold">≈ 1.07 inches</text>
+    <text x="730" y="136" text-anchor="middle" font-size="8.8" fill="#555">One number that represents what the</text>
+    <text x="730" y="148" text-anchor="middle" font-size="8.8" fill="#555">whole watershed actually received.</text>
+  </svg>
+  <figcaption><b>Mean Areal Precipitation.</b> AFFI samples the forecast at several points across the basin and weights each by the area it represents (the center, near the outlet, counts most). The result is a single, physically meaningful rainfall figure that drives the rest of the pipeline.</figcaption>
+</figure>
+
+<p><b>Is this AI?</b> No. Stage 1 is physics-based numerical weather prediction from NOAA's operational models plus deterministic area-weighted averaging. The AI begins in Stage 2. Each MAP value is also compared against NOAA Atlas 14 precipitation-frequency benchmarks for Santa Cruz County, producing an initial return-period classification and alert level so managers immediately know whether a storm is routine or rare.</p>
+
+<h3 class="subsection">4.4 Stage 2 — Hydrology Model</h3>
+<p><b>What it does:</b> converts the rainfall history into a peak-discharge estimate — how much water will move through the channel. Desert hydrology has an unusual structure: the channel is dry roughly 95% of the time, and nearly everything that matters happens on a handful of days each year. Forcing one model to handle both regimes wastes most of its capacity learning "predict near-zero." AFFI instead uses a <b>two-part hurdle model</b> that mirrors this structure.</p>
+
+<figure class="fig">
+  <div class="fig-title">FIGURE 4 &nbsp;·&nbsp; THE HURDLE MODEL — FIRST "IS IT A FLOOD DAY?", THEN "HOW BIG?"</div>
+  <svg viewBox="0 0 900 240" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <defs><marker id="ah3" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4F7942"/></marker></defs>
+    <!-- input: 30 days, mostly dry -->
+    <rect x="30" y="80" width="150" height="80" rx="8" fill="#fff" stroke="#1B3A5C" stroke-width="1.5"/>
+    <text x="105" y="72" text-anchor="middle" font-size="9.5" fill="#1B3A5C" font-weight="bold">Last 30 days of rain</text>
+    <g>
+      <!-- dry days (gray) and one wet (blue) -->
+      <g fill="#cfcfcf">
+        <rect x="42" y="132" width="6" height="16"/><rect x="52" y="136" width="6" height="12"/><rect x="62" y="138" width="6" height="10"/><rect x="72" y="134" width="6" height="14"/><rect x="82" y="140" width="6" height="8"/><rect x="92" y="136" width="6" height="12"/><rect x="112" y="138" width="6" height="10"/><rect x="122" y="134" width="6" height="14"/><rect x="132" y="140" width="6" height="8"/><rect x="142" y="136" width="6" height="12"/><rect x="152" y="138" width="6" height="10"/><rect x="162" y="134" width="6" height="14"/>
+      </g>
+      <rect x="102" y="108" width="6" height="40" fill="#2E86C1"/>
+    </g>
+    <text x="105" y="118" text-anchor="middle" font-size="7.6" fill="#2E86C1">heavy rain</text>
+    <!-- arrow -->
+    <line x1="182" y1="120" x2="212" y2="120" stroke="#4F7942" stroke-width="2.4" marker-end="url(#ah3)"/>
+    <!-- GATE (LSTM) diamond -->
+    <polygon points="300,120 372,78 444,120 372,162" fill="#EAF1FA" stroke="#1B3A5C" stroke-width="1.8"/>
+    <text x="372" y="112" text-anchor="middle" font-size="9.6" fill="#1B3A5C" font-weight="bold">LSTM gate</text>
+    <text x="372" y="126" text-anchor="middle" font-size="8.6" fill="#1B3A5C">flood day?</text>
+    <text x="372" y="139" text-anchor="middle" font-size="7.8" fill="#555">P ≥ 0.85</text>
+    <!-- NO path -->
+    <line x1="372" y1="164" x2="372" y2="200" stroke="#999" stroke-width="2" marker-end="url(#ah3)"/>
+    <text x="386" y="186" font-size="9" fill="#777">No →</text>
+    <rect x="330" y="200" width="150" height="26" rx="6" fill="#f0f0f0" stroke="#bbb"/>
+    <text x="405" y="217" text-anchor="middle" font-size="9" fill="#555">Discharge = 0 (dry day)</text>
+    <!-- YES path -->
+    <line x1="446" y1="120" x2="500" y2="120" stroke="#4F7942" stroke-width="2.4" marker-end="url(#ah3)"/>
+    <text x="472" y="110" text-anchor="middle" font-size="9" fill="#2F5233" font-weight="bold">Yes</text>
+    <!-- XGBoost box -->
+    <rect x="504" y="88" width="150" height="64" rx="8" fill="#fff" stroke="#4F7942" stroke-width="1.8"/>
+    <text x="579" y="112" text-anchor="middle" font-size="10" fill="#2F5233" font-weight="bold">XGBoost</text>
+    <text x="579" y="128" text-anchor="middle" font-size="8.8" fill="#333">"how big is it?"</text>
+    <text x="579" y="142" text-anchor="middle" font-size="8" fill="#777">magnitude regressor</text>
+    <!-- arrow to output -->
+    <line x1="656" y1="120" x2="700" y2="120" stroke="#4F7942" stroke-width="2.4" marker-end="url(#ah3)"/>
+    <rect x="704" y="94" width="164" height="52" rx="8" fill="#1B3A5C"/>
+    <text x="786" y="116" text-anchor="middle" font-size="10.5" fill="#fff" font-weight="bold">Peak discharge</text>
+    <text x="786" y="132" text-anchor="middle" font-size="9" fill="#DCE9F5">(cubic metres / second)</text>
+  </svg>
+  <figcaption><b>Two questions, two models.</b> The LSTM "gate" reads the recent rainfall pattern and answers only <i>whether</i> today is a flood day. Only when it fires does the XGBoost model estimate <i>how big</i> the flood is. Separating these matches the physical reality of desert streams — mostly dry, occasionally violent — and is why the system detects flood events reliably even where exact magnitude is hard.</figcaption>
+</figure>
+
+<p><b>Why "physics-guided"?</b> The models read hydrologically meaningful features — an antecedent-precipitation soil-moisture proxy, consecutive dry days, a monsoon-season flag, and 3- and 7-day rainfall accumulations — rather than raw numbers alone. And the system is trained in two stages, so a new watershed does not need decades of its own data:</p>
+
+<figure class="fig">
+  <div class="fig-title">FIGURE 5 &nbsp;·&nbsp; TRANSFER LEARNING — LEARN ON A DATA-RICH BASIN, ADAPT TO THE TARGET</div>
+  <svg viewBox="0 0 900 190" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <defs><marker id="ah4" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#1B3A5C"/></marker></defs>
+    <!-- anchor basin -->
+    <rect x="30" y="45" width="230" height="100" rx="10" fill="#EAF1FA" stroke="#1B3A5C" stroke-width="1.6"/>
+    <text x="145" y="70" text-anchor="middle" font-size="11" fill="#1B3A5C" font-weight="bold">Anchor: Babocomari River</text>
+    <text x="145" y="88" text-anchor="middle" font-size="9" fill="#333">Long, dense USGS gauge record</text>
+    <text x="145" y="104" text-anchor="middle" font-size="9" fill="#333">Learns general desert-flood behavior:</text>
+    <text x="145" y="118" text-anchor="middle" font-size="8.4" fill="#555">infiltration, overland flow, monsoon response</text>
+    <text x="145" y="135" text-anchor="middle" font-size="8.4" fill="#2F5233" font-style="italic">data-rich → strong foundation</text>
+    <!-- transfer arrow -->
+    <line x1="264" y1="95" x2="360" y2="95" stroke="#1B3A5C" stroke-width="3" marker-end="url(#ah4)"/>
+    <text x="312" y="82" text-anchor="middle" font-size="9.5" fill="#1B3A5C" font-weight="bold">transfers</text>
+    <text x="312" y="112" text-anchor="middle" font-size="8.4" fill="#555">general knowledge</text>
+    <!-- pilot basin -->
+    <rect x="368" y="45" width="230" height="100" rx="10" fill="#EAF3E9" stroke="#4F7942" stroke-width="1.6"/>
+    <text x="483" y="70" text-anchor="middle" font-size="11" fill="#2F5233" font-weight="bold">Pilot: Sonoita Creek</text>
+    <text x="483" y="88" text-anchor="middle" font-size="9" fill="#333">Fine-tuned on local gauge (09481500)</text>
+    <text x="483" y="104" text-anchor="middle" font-size="9" fill="#333">Adds local soil &amp; terrain response</text>
+    <text x="483" y="121" text-anchor="middle" font-size="8.4" fill="#555">needs only ~10–15 yrs of local data</text>
+    <text x="483" y="136" text-anchor="middle" font-size="8.4" fill="#2F5233" font-style="italic">data-poor → still works</text>
+    <!-- result arrow -->
+    <line x1="602" y1="95" x2="660" y2="95" stroke="#4F7942" stroke-width="3" marker-end="url(#ah)"/>
+    <rect x="668" y="58" width="200" height="74" rx="10" fill="#1B3A5C"/>
+    <text x="768" y="88" text-anchor="middle" font-size="10.5" fill="#fff" font-weight="bold">Deployable model</text>
+    <text x="768" y="106" text-anchor="middle" font-size="8.8" fill="#DCE9F5">for a watershed with little</text>
+    <text x="768" y="118" text-anchor="middle" font-size="8.8" fill="#DCE9F5">of its own flood history</text>
+  </svg>
+  <figcaption><b>Why a new watershed doesn't need decades of data.</b> The model first learns the general "physics" of Arizona flash floods from a well-instrumented basin, then only fine-tunes on the target watershed's shorter local record — the same idea as teaching a specialist the fundamentals before local on-the-job training. This is the mechanism that makes AFFI transferable to ungauged and sparsely-gauged basins.</figcaption>
+</figure>
+
+<p><b>Validated performance</b> (held-out test, Upper Sonoita Creek). The model reports its own skill honestly through a technical-staff diagnostics panel:</p>
+<table class="data">
+<tr><th>Metric</th><th>Value</th><th>Plain-language meaning</th></tr>
+<tr><td>Event detection (AUC-ROC)</td><td><b>0.959</b></td><td>Correctly ranks flood vs. non-flood days ~96% of the time — excellent</td></tr>
+<tr><td>Rare-event detection (AUC-PR)</td><td><b>0.643</b></td><td>Strong, given only ~5% of days are events (random ≈ 0.05)</td></tr>
+<tr><td>Event F1 score</td><td><b>0.611</b></td><td>A sound false-alarm / missed-event balance for rare events</td></tr>
+<tr><td>Magnitude skill (NSE)</td><td><b>0.348</b></td><td>Peak-size accuracy — inherently harder in flashy desert basins (see §7)</td></tr>
+<tr><td>Bias (PBIAS)</td><td><b>−2.9%</b></td><td>Essentially unbiased on average</td></tr>
+</table>
+<p>The system is deliberately engineered so that decisions rest on the <b>reliable signal — event detection (0.959)</b> — while treating exact magnitude as a range and defaulting road-closure decisions to the worst-case scenario. This is described in the decision framework in Section 4.8.</p>
+
+<div class="page-break"></div>
+<h3 class="subsection">4.5 Stage 3 — Hydraulic Flood Mapping</h3>
+<p><b>What it does:</b> converts a discharge value into a spatial flood-depth map. AFFI's operational engine is a <b>pre-computed, discharge-indexed flood-map library</b> built entirely from federal open data — real FEMA regulatory floodplain geometry, real FEMA Base Flood Elevations (429 surveyed points for this watershed), and the real USGS 3DEP 10-metre elevation model. The principle a non-technical reader needs is simple:</p>
+
+<figure class="fig">
+  <div class="fig-title">FIGURE 6 &nbsp;·&nbsp; HOW FLOOD DEPTH IS COMPUTED — WATER SURFACE MINUS GROUND</div>
+  <svg viewBox="0 0 860 230" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <!-- sky -->
+    <rect x="60" y="20" width="740" height="170" fill="#F7FAFD"/>
+    <!-- ground / valley terrain (DEM) -->
+    <path d="M60 150 L180 150 L300 175 L430 185 L560 172 L680 150 L800 150 L800 210 L60 210 Z" fill="#E7DFCF" stroke="#8a7a5c" stroke-width="1.6"/>
+    <text x="120" y="200" font-size="9" fill="#7a6a4c">ground surface (USGS lidar DEM)</text>
+    <!-- water surface (BFE) -->
+    <path d="M250 128 L560 128" stroke="#1f6aa5" stroke-width="2.5"/>
+    <!-- water fill -->
+    <path d="M250 128 L560 128 L560 172 L430 185 L300 175 Z" fill="#5DADE2" fill-opacity="0.75"/>
+    <text x="405" y="120" text-anchor="middle" font-size="9.5" fill="#1f6aa5" font-weight="bold">flood water surface elevation (from FEMA BFE)</text>
+    <!-- depth arrow -->
+    <line x1="430" y1="128" x2="430" y2="185" stroke="#B03A2E" stroke-width="2"/>
+    <line x1="424" y1="132" x2="436" y2="132" stroke="#B03A2E" stroke-width="2"/>
+    <line x1="424" y1="181" x2="436" y2="181" stroke="#B03A2E" stroke-width="2"/>
+    <text x="446" y="160" font-size="10" fill="#B03A2E" font-weight="bold">= flood depth</text>
+    <!-- equation -->
+    <rect x="215" y="20" width="430" height="26" rx="6" fill="#1B3A5C"/>
+    <text x="430" y="38" text-anchor="middle" font-size="11" fill="#fff" font-weight="bold">Flood depth  =  Water-surface elevation  −  Ground elevation</text>
+  </svg>
+  <figcaption><b>Depth is a subtraction.</b> For any point in the valley, the flood depth is simply how far the water surface sits above the ground. AFFI builds the water surface from FEMA's published flood elevations and subtracts real lidar terrain — so every depth on the map traces back to a citable federal source, not a black box.</figcaption>
+</figure>
+
+<p>The library holds eight maps spanning the 2-year through 500-year return periods (discharge from 83.6 to 620.5 m³/s). At runtime, today's predicted discharge is matched to the nearest stored maps and interpolated between them; discharges below the smallest map are scaled using an established hydraulic-geometry relationship (Leopold &amp; Maddock, 1953). <b>Why this method?</b> Building a full 2-D hydrodynamic (HEC-RAS) model bank is 20–40 hours of calibrated modeling per watershed. An analytical library grounded in FEMA-effective floodplain geometry, published base flood elevations, and real lidar terrain delivers an operational, fully traceable, return-period-indexed depth map today. A neural hydraulic surrogate (a residual U-Net that emulates HEC-RAS) is in parallel development for full hydrodynamic fidelity; it reuses the same library interface, so it can be substituted with no change to the rest of the pipeline.</p>
+
+<h3 class="subsection">4.6 Stage 4 — Probabilistic Output</h3>
+<p><b>What it does:</b> a forecast is never a single certain number, so AFFI propagates the <b>optimistic (P10), most-likely (P50), and pessimistic (P90)</b> rainfall percentiles — drawn from the 31-member ensemble — through the pipeline to produce three flood maps: best case, likely case, and worst case. Each percentile is converted to discharge using the SCS Curve-Number runoff method and looked up in the flood library.</p>
+
+<figure class="fig">
+  <div class="fig-title">FIGURE 7 &nbsp;·&nbsp; ONE FORECAST, THREE SCENARIOS — TURNING UNCERTAINTY INTO A DECISION</div>
+  <svg viewBox="0 0 880 210" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <defs><marker id="ah5" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#4F7942"/></marker></defs>
+    <!-- ensemble source -->
+    <rect x="20" y="78" width="150" height="54" rx="8" fill="#1B3A5C"/>
+    <text x="95" y="100" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">31-member</text>
+    <text x="95" y="116" text-anchor="middle" font-size="10" fill="#fff" font-weight="bold">rainfall forecast</text>
+    <!-- three fan arrows -->
+    <line x1="172" y1="100" x2="250" y2="45" stroke="#4F7942" stroke-width="2.2" marker-end="url(#ah5)"/>
+    <line x1="172" y1="105" x2="250" y2="105" stroke="#4F7942" stroke-width="2.2" marker-end="url(#ah5)"/>
+    <line x1="172" y1="110" x2="250" y2="165" stroke="#4F7942" stroke-width="2.2" marker-end="url(#ah5)"/>
+    <!-- BEST -->
+    <g>
+      <rect x="256" y="20" width="180" height="50" rx="8" fill="#EAF3E9" stroke="#4F7942" stroke-width="1.4"/>
+      <text x="276" y="40" font-size="10" fill="#2F5233" font-weight="bold">BEST — P10</text>
+      <text x="276" y="55" font-size="8.6" fill="#555">optimistic: little water</text>
+      <rect x="392" y="30" width="34" height="30" rx="3" fill="#CFE0F0" stroke="#1B3A5C"/>
+    </g>
+    <!-- LIKELY -->
+    <g>
+      <rect x="256" y="80" width="180" height="50" rx="8" fill="#DCE9F5" stroke="#1B3A5C" stroke-width="1.4"/>
+      <text x="276" y="100" font-size="10" fill="#1B3A5C" font-weight="bold">LIKELY — P50</text>
+      <text x="276" y="115" font-size="8.6" fill="#555">best single estimate</text>
+      <rect x="392" y="90" width="34" height="30" rx="3" fill="#9CC3E6" stroke="#1B3A5C"/>
+    </g>
+    <!-- WORST -->
+    <g>
+      <rect x="256" y="140" width="180" height="50" rx="8" fill="#FBECE9" stroke="#B03A2E" stroke-width="1.4"/>
+      <text x="276" y="160" font-size="10" fill="#B03A2E" font-weight="bold">WORST — P90</text>
+      <text x="276" y="175" font-size="8.6" fill="#555">~10% chance of exceeding</text>
+      <rect x="392" y="150" width="34" height="30" rx="3" fill="#5DADE2" stroke="#B03A2E"/>
+    </g>
+    <!-- combine arrow -->
+    <line x1="438" y1="105" x2="500" y2="105" stroke="#4F7942" stroke-width="2.4" marker-end="url(#ah5)"/>
+    <!-- decision products -->
+    <rect x="506" y="34" width="356" height="142" rx="10" fill="#fff" stroke="#1B3A5C" stroke-width="1.6"/>
+    <text x="684" y="56" text-anchor="middle" font-size="10.5" fill="#1B3A5C" font-weight="bold">Decision-support products</text>
+    <text x="524" y="80" font-size="9.2" fill="#333">● Probability a spot is flooded (0–100%)</text>
+    <text x="524" y="100" font-size="9.2" fill="#333">● Life-safety map: chance depth &gt; 0.5 m</text>
+    <text x="524" y="120" font-size="9.2" fill="#333">● Uncertainty: where the scenarios disagree</text>
+    <text x="524" y="140" font-size="9.2" fill="#333">● Worst-case map drives road-closure calls</text>
+    <text x="524" y="162" font-size="8.6" fill="#777" font-style="italic">Managers see a range and a confidence, not false precision.</text>
+  </svg>
+  <figcaption><b>Uncertainty made usable.</b> Instead of one over-confident map, AFFI shows the optimistic, likely, and worst-case outcomes and the probability of flooding at each location. Emergency managers can then match the decision to the confidence — routine planning off the likely case, life-safety and road closures off the worst case.</figcaption>
+</figure>
+
+<h3 class="subsection">4.7 Stage 5 — Benchmarking</h3>
+<p><b>What it does:</b> compares every predicted rainfall, discharge, and flood map against federal engineering benchmarks — NOAA Atlas 14 precipitation frequency and USGS Log-Pearson III discharge statistics — to classify each event by return period (2-year through 500-year). Emergency managers are trained to act on return-period language: a raw discharge figure means little, but "comparable to a 25-year storm" is immediately actionable and is the same vocabulary FEMA maps already use. Like Stage 1, this stage is not AI — it is a deterministic comparison against published federal data, which reinforces scientific and regulatory credibility.</p>
+
+<h3 class="subsection">4.8 Stage 6 — Alert Policy and Decision Support</h3>
+<div class="policy-box">
+  <b class="l">Critical policy decision:</b> All AFFI alerts are delivered exclusively to authorized government personnel — county emergency managers, public-works directors, and EOC staff. No alert is broadcast directly to the public. This eliminates the liability of automated public warnings and ensures that all public communication is reviewed and authorized by responsible officials.
+</div>
+<p>The delivered front end is a purpose-built dashboard that surfaces, from the shared forecast: an interactive map with per-building and per-facility flood depths and a flood-probability layer; a <b>Decision Cockpit</b> giving time-to-peak (Kirpich time-of-concentration → SCS lag), the life-safety probability (chance depth exceeds 0.5 m), and a plain-English confidence framework; an NWS-style bulletin generator; and a data-staleness watchdog that visibly warns if the forecast pipeline has not refreshed. The full pipeline re-runs automatically every six hours.</p>
+
+<h3 class="subsection">4.9 Lead-Time-Dependent Confidence</h3>
+<p>Forecast confidence improves as an event approaches. The dashboard reflects this directly.</p>
+<span class="tblcap">Table 4: Confidence of Predicted Flooding and Related Actions</span>
+<table class="data">
+<tr><th>Lead Time</th><th>Primary Data Source</th><th>Confidence</th><th>Primary Use</th></tr>
+<tr><td>2–7 days</td><td>GFS ensemble (31 members)</td><td>Low–Medium</td><td>Pre-positioning resources, early briefings</td></tr>
+<tr><td>6–24 hours</td><td>HRRR + updated GFS</td><td>Medium–High</td><td>Road-closure decisions, evacuation planning</td></tr>
+<tr><td>0–6 hours</td><td>MRMS radar + nowcast</td><td>High</td><td>Active road closures, emergency response</td></tr>
+</table>
+
+<div class="page-break"></div>
+<h2 class="section">5. Development of AFFI — Tasks and Deliverables</h2>
+
+<figure class="fig">
+  <svg viewBox="0 0 900 96" xmlns="http://www.w3.org/2000/svg" font-family="Georgia, serif">
+    <defs><marker id="ah6" markerWidth="9" markerHeight="9" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#999"/></marker></defs>
+    <g text-anchor="middle">
+      <circle cx="70" cy="36" r="26" fill="#4F7942"/><text x="70" y="42" font-size="14" fill="#fff" font-weight="bold">T1</text><text x="70" y="80" font-size="8" fill="#333">Meteorology</text>
+      <circle cx="210" cy="36" r="26" fill="#2F6FA3"/><text x="210" y="42" font-size="14" fill="#fff" font-weight="bold">T2</text><text x="210" y="80" font-size="8" fill="#333">Hydrology</text>
+      <circle cx="350" cy="36" r="26" fill="#6B4F9E"/><text x="350" y="42" font-size="14" fill="#fff" font-weight="bold">T3</text><text x="350" y="80" font-size="8" fill="#333">Hydraulics</text>
+      <circle cx="490" cy="36" r="26" fill="#B24A8C"/><text x="490" y="42" font-size="14" fill="#fff" font-weight="bold">T4</text><text x="490" y="80" font-size="8" fill="#333">Probabilistic</text>
+      <circle cx="630" cy="36" r="26" fill="#D4A017"/><text x="630" y="42" font-size="14" fill="#fff" font-weight="bold">T5</text><text x="630" y="80" font-size="8" fill="#333">Benchmarking</text>
+      <circle cx="770" cy="36" r="26" fill="#B03A2E"/><text x="770" y="42" font-size="14" fill="#fff" font-weight="bold">T6</text><text x="770" y="80" font-size="8" fill="#333">Alert &amp; Dashboard</text>
+    </g>
+    <g stroke="#999" stroke-width="2" marker-end="url(#ah6)">
+      <line x1="100" y1="36" x2="180" y2="36"/><line x1="240" y1="36" x2="320" y2="36"/><line x1="380" y1="36" x2="460" y2="36"/><line x1="520" y1="36" x2="600" y2="36"/><line x1="660" y1="36" x2="740" y2="36"/>
+    </g>
+  </svg>
+</figure>
+
+<h3 class="subsection">Task 1 — Meteorological Forecast Interface</h3>
+<p><b>Objective:</b> ingest real-time weather-forecast data and compute Mean Areal Precipitation for the pilot watershed, with alert-threshold logic benchmarked against NOAA Atlas 14 return periods.</p>
+<div class="deliverable-box"><b>D1.1</b> — Forecast-ingest &amp; MAP module. &nbsp; <b>D1.2</b> — Structured JSON alert packet. &nbsp; <b>D1.3</b> — Forecast dashboard visualization. &nbsp; <b>D1.4</b> — Rainfall stress-test report. &nbsp; <b>D1.5</b> — Technical methods memo.</div>
+<p class="status-line"><b>Status:</b> complete and running live on a 6-hour automated schedule; the alert packet is consumed directly by the operational dashboard.</p>
+
+<h3 class="subsection">Task 2 — Hydrology Model (Anchor → Adapt)</h3>
+<p><b>Objective:</b> learn general desert flash-flood behavior from the data-rich Babocomari River anchor record, then adapt to the Sonoita Creek pilot — the hurdle model of Section 4.4.</p>
+<div class="deliverable-box"><b>D2.1</b> — Model library (LSTM event-gate + XGBoost magnitude). &nbsp; <b>D2.2</b> — Performance scorecard (AUC-ROC, AUC-PR, F1, NSE, PBIAS). &nbsp; <b>D2.3</b> — Training configs. &nbsp; <b>D2.4</b> — Validation plots. &nbsp; <b>D2.5</b> — New-watershed deployment checklist.</div>
+<p class="status-line"><b>Status:</b> implemented and validated on Upper Sonoita Creek — AUC-ROC 0.959, AUC-PR 0.643, F1 0.611, NSE 0.348, PBIAS −2.9% (Section 4.4).</p>
+
+<h3 class="subsection">Task 3 — Hydraulic Flood Mapping</h3>
+<p><b>Objective:</b> convert predicted discharge into spatial flood-inundation maps.</p>
+<div class="deliverable-box"><b>D3.1</b> — Hydraulically referenced DEM (USGS 3DEP). &nbsp; <b>D3.2</b> — FEMA/USGS analytical flood library with full provenance. &nbsp; <b>D3.3</b> — Neural surrogate (ResUNet) implementation. &nbsp; <b>D3.4</b> — Surrogate validation plan. &nbsp; <b>D3.5</b> — Return-period flood-map library (GeoTIFF, 2–500 yr).</div>
+<p class="status-line"><b>Status:</b> the analytical FEMA/USGS library (8 return periods) is delivered and drives the live maps; the ResUNet surrogate is implemented in parallel for future full-hydrodynamic fidelity.</p>
+
+<h3 class="subsection">Task 4 — Probabilistic Risk Products</h3>
+<p><b>Objective:</b> generate the probabilistic decision-support products of Section 4.6 for emergency management.</p>
+<div class="deliverable-box"><b>D4.1</b> — Best/likely/worst + probability + uncertainty rasters. &nbsp; <b>D4.2</b> — EOC dashboard products. &nbsp; <b>D4.3</b> — Ensemble hydrograph. &nbsp; <b>D4.4</b> — Time-to-peak report.</div>
+<p class="status-line"><b>Status:</b> implemented and running; the 7-day probabilistic outlook refreshes on the 6-hour schedule.</p>
+
+<h3 class="subsection">Task 5 — Design-Storm Benchmarking &amp; Return-Period Comparison</h3>
+<p><b>Objective:</b> let managers understand any predicted event by its rarity relative to standard design storms.</p>
+<div class="deliverable-box"><b>D5.1</b> — Return-period benchmark database. &nbsp; <b>D5.2</b> — Historical-event validation report. &nbsp; <b>D5.3</b> — Benchmark comparison figures. &nbsp; <b>D5.4</b> — Sensitivity-analysis report. &nbsp; <b>D5.5</b> — Return-period classification-accuracy table.</div>
+<p class="status-line"><b>Status:</b> benchmark database, comparison engine, sensitivity analysis, and classification-accuracy reporting implemented. Spatial (IoU) validation against post-event survey maps is the primary remaining validation activity (Section 7).</p>
+
+<h3 class="subsection">Task 6 — Alert System, Government API, and Decision Dashboard</h3>
+<p><b>Objective:</b> integrate all components into an operational alert system with a secure government API and an EOC-ready dashboard, with alert logic controlled by county emergency management.</p>
+<div class="deliverable-box"><b>D6.1</b> — Alert Logic Specification. &nbsp; <b>D6.2</b> — Alert-engine module with audit logging. &nbsp; <b>D6.3</b> — Authenticated FastAPI application (with test suite + one-command Docker startup). &nbsp; <b>D6.4</b> — React/FastAPI decision dashboard. &nbsp; <b>D6.5</b> — Operational test report. &nbsp; <b>D6.6</b> — System documentation package.</div>
+<p class="status-line"><b>Status:</b> API, dashboard, scheduler, staleness watchdog, and Docker deployment implemented and running. Live monsoon-season performance metrics (Step 6.5) accrue through the 2026 season.</p>
+
+<div class="page-break"></div>
+<h2 class="section">6. Data Sources and Technical Feasibility</h2>
+<p>All primary data are publicly available from federal agencies at no licensing cost, which eliminates a major category of project risk and ensures long-term sustainability.</p>
+<span class="tblcap">Table 5: Data Sources for AFFI</span>
+<table class="data">
+<tr><th>Data Type</th><th>Source</th><th>Resolution</th><th>Coverage</th><th>Cost</th></tr>
+<tr><td>Streamflow (anchor)</td><td>USGS NWIS — Babocomari River (09471000)</td><td>Daily / 15-min</td><td>Multi-decadal record</td><td>Free</td></tr>
+<tr><td>Streamflow (pilot)</td><td>USGS NWIS — Sonoita Creek near Patagonia (09481500)</td><td>Daily / 15-min</td><td>45-year record</td><td>Free</td></tr>
+<tr><td>Historical precipitation</td><td>ERA5 via Open-Meteo Archive API</td><td>0.25°, hourly</td><td>1940–present, global</td><td>Free</td></tr>
+<tr><td>Terrain (DEM)</td><td>USGS 3DEP</td><td>10-m (1-m lidar available)</td><td>Statewide AZ</td><td>Free</td></tr>
+<tr><td>Real-time forecast</td><td>NOAA GFS</td><td>~13 km, 6-hourly</td><td>31 ensemble members</td><td>Free</td></tr>
+<tr><td>High-res forecast</td><td>NOAA HRRR</td><td>3 km, hourly</td><td>CONUS</td><td>Free</td></tr>
+<tr><td>Radar rainfall</td><td>NOAA MRMS</td><td>1 km, 2-min</td><td>Real-time, CONUS</td><td>Free</td></tr>
+<tr><td>Regulatory floodplain &amp; base flood elevations</td><td>FEMA NFHL (AE/X) + FEMA FIS BFE</td><td>Vector / per-panel</td><td>Nationwide (where mapped)</td><td>Free</td></tr>
+<tr><td>Return-period discharge</td><td>USGS Log-Pearson III / regional regression</td><td>Per site</td><td>Statewide AZ</td><td>Free</td></tr>
+<tr><td>Soil &amp; land cover</td><td>USDA SSURGO + USGS NLCD</td><td>1:24,000 / 30 m</td><td>Statewide AZ</td><td>Free</td></tr>
+<tr><td>Watershed attributes</td><td>USGS GAGES-II</td><td>Per watershed</td><td>9,322 US watersheds</td><td>Free</td></tr>
+<tr><td>Precipitation benchmarks</td><td>NOAA Atlas 14</td><td>Per county</td><td>All AZ counties</td><td>Free</td></tr>
+</table>
+
+<h2 class="section">7. Validation Plan and Performance Goals</h2>
+<p>AFFI is validated against four independent benchmarks. The performance targets (Table 6) follow published standards in the peer-reviewed hydrology literature; the achieved pilot results are reported alongside them.</p>
+<span class="tblcap">Table 6: Performance Goals and Achieved Results</span>
+<table class="data">
+<tr><th>Validation Level</th><th>Method</th><th>Target</th><th>Achieved (pilot)</th></tr>
+<tr><td>Event detection</td><td>Held-out flood/no-flood days</td><td>—</td><td><b>AUC-ROC 0.959</b> ✓</td></tr>
+<tr><td>In-sample magnitude</td><td>Held-out years, peak discharge</td><td>NSE &gt; 0.75</td><td>NSE 0.348 (see note)</td></tr>
+<tr><td>Historical event / spatial</td><td>Full pipeline vs. post-event surveys</td><td>IoU &gt; 0.75</td><td>In progress</td></tr>
+<tr><td>Speed benchmark</td><td>GFS input → flood map</td><td>&lt; 60 seconds</td><td><b>~60 seconds</b> ✓</td></tr>
+</table>
+<p><b>Note on the magnitude metric.</b> An NSE of 0.348 is below the 0.75 target, and this is reported plainly rather than hidden. It is a known property of the regime, not a defect in the implementation: NSE is normalized by the variance of observed flow, which makes it structurally harsh for arid, ephemeral basins where flow is near-zero most of the time and spikes violently on a few days. The large-sample hydrology literature consistently finds arid/ephemeral basins to be the lowest-NSE class of watershed across all model types (Kratzert et al., 2019). AFFI is therefore engineered so that decisions rest on the reliable signal — event detection (AUC-ROC 0.959) — with magnitude treated as a ±25–40% band and road-closure decisions defaulting to the worst-case scenario.</p>
+<h3 class="subsection">7.1 Baseline Comparisons</h3>
+<ul>
+  <li><b>Baseline 1 — hydrology model without physics-guided features:</b> demonstrates the value the engineered features add over generic AI.</li>
+  <li><b>Baseline 2 — HEC-HMS + HEC-RAS (full physics):</b> demonstrates AFFI approaches physics-model accuracy at ~360× the speed.</li>
+  <li><b>Baseline 3 — FEMA static FIRM maps:</b> demonstrates dynamic, event-based, return-period-indexed maps outperform static hazard maps for real-time decisions.</li>
+</ul>
+
+<h2 class="section">8. Transferability to Other Watersheds</h2>
+<div class="design-box">
+  <b>Design principle:</b> every component of AFFI was built to be transferable to any watershed in Arizona or the United States. Upper Sonoita Creek is the first validated deployment, not the product. The <i>code</i> of every stage is watershed-agnostic; only <i>data</i> changes per watershed.
+</div>
+<p>To deploy AFFI for a new watershed, the following watershed-specific inputs are substituted; every universal component (hurdle-model architecture, flood-library structure, probabilistic engine, benchmarking engine, alert logic, API, dashboard) remains unchanged.</p>
+<table class="data">
+<tr><th>Component</th><th>What Changes Per Watershed</th><th>Data Source</th><th>Effort</th></tr>
+<tr><td>AOI / bounding box</td><td>Watershed boundary polygon</td><td>USGS National Map</td><td>~1 hr</td></tr>
+<tr><td>Precipitation benchmarks</td><td>County precipitation-frequency estimates</td><td>NOAA Atlas 14</td><td>~2 hr</td></tr>
+<tr><td>Alert thresholds</td><td>Advisory/Watch/Warning for local conditions</td><td>County OEM + NOAA Atlas 14</td><td>~4 hr</td></tr>
+<tr><td>DEM</td><td>3DEP terrain for new domain</td><td>USGS 3DEP</td><td>~4 hr</td></tr>
+<tr><td>Flood library</td><td>FEMA NFHL + BFE → depth library</td><td>FEMA + USGS 3DEP + LP-III</td><td>~8–16 hr</td></tr>
+<tr><td>Hydrology model</td><td>Fine-tune on local gauge (or transfer anchor)</td><td>USGS NWIS</td><td>~8 hr</td></tr>
+</table>
+<p><b>A key transferability finding:</b> because the operational flood library is built from <i>nationally available</i> FEMA and USGS open data rather than bespoke hydrodynamic runs, any watershed with FEMA NFHL mapping, published base flood elevations, and a 3DEP DEM can receive an operational, return-period-indexed flood library quickly. The analytical method is itself a transferability asset. Estimated marginal effort per new watershed is roughly 40–80 hours for the full-fidelity path, and substantially less where FEMA coverage exists — the marginal cost of expansion, not the full system-development cost.</p>
+
+<div class="page-break"></div>
+<h2 class="section">9. References</h2>
+<ol style="font-size:9.2pt;">
+  <li>Cloke, H. L., &amp; Pappenberger, F. (2009). Ensemble flood forecasting: A review. <i>Journal of Hydrology.</i> doi.org/10.1016/j.jhydrol.2009.06.005</li>
+  <li>Kratzert, F., et al. (2019). Towards learning universal, regional, and local hydrological behaviors via machine learning. <i>Nature Communications.</i> doi.org/10.1038/s41467-019-13507-2</li>
+  <li>Moriasi, D. N., et al. (2007). Model evaluation guidelines for watershed simulations. <i>Transactions of the ASABE.</i> doi.org/10.13031/2013.23153</li>
+  <li>Chen, T., &amp; Guestrin, C. (2016). XGBoost: A scalable tree boosting system. <i>KDD.</i> doi.org/10.1145/2939672.2939785</li>
+  <li>Lin, T.-Y., et al. (2017). Focal loss for dense object detection. <i>ICCV.</i> doi.org/10.1109/ICCV.2017.324</li>
+  <li>USDA Natural Resources Conservation Service (1986). Urban Hydrology for Small Watersheds (TR-55, SCS Curve Number method).</li>
+  <li>Leopold, L. B., &amp; Maddock, T. (1953). The hydraulic geometry of stream channels. USGS Professional Paper 252.</li>
+  <li>Kirpich, Z. P. (1940). Time of concentration of small agricultural watersheds. <i>Civil Engineering,</i> 10(6), 362.</li>
+  <li>Ronneberger, O., et al. (2015). U-Net: Convolutional networks for biomedical image segmentation. <i>MICCAI.</i> doi.org/10.1007/978-3-319-24574-4_28</li>
+  <li>IPCC (2021). Climate Change 2021: The Physical Science Basis. Sixth Assessment Report.</li>
+  <li>NOAA Hydrometeorological Design Studies Center (2024). Precipitation Frequency Data Server (Atlas 14). hdsc.nws.noaa.gov/hdsc/pfds</li>
+  <li>NOAA Office of Water Prediction (2024). National Water Model Documentation. water.noaa.gov/about/nwm</li>
+  <li>USGS (2024). 3D Elevation Program (3DEP) High-Resolution Lidar Data. usgs.gov/3d-elevation-program</li>
+  <li>USGS National Water Information System (NWIS) (2024). Real-time Streamflow Data for Arizona. waterdata.usgs.gov/nwis</li>
+  <li>FEMA (2022). Flood Insurance Rate Maps &amp; National Flood Hazard Layer. fema.gov/flood-maps</li>
+  <li>Google Research (2024). Flood Hub Global Flood Forecasting. sites.research.google/floods</li>
+</ol>
+
+</body>
+</html>

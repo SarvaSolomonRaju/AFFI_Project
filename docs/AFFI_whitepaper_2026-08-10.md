@@ -6,7 +6,7 @@
 **Revised: July 6, 2026 — updated to reflect the validated pilot implementation**
 **Revised: August 10, 2026 — dashboard feature expansion, plus two critical bugs found and fixed in the live pipeline (see Changelog)**
 
-> **A second version of this document also exists, aimed at a different reader.** `docs/AFFI_whitepaper_MAY11_TEMPLATE_2026-08-10.pdf`/`.html` preserves the original May 11, 2026 whitepaper's exact template, section order, and wording — nothing rewritten — with dated orange "UPDATE" boxes inserted wherever the deployed system has since diverged (including the anchor-watershed correction: Walnut Gulch → Babocomari River, USGS 09471000, changed 2026-05-27). Use that version when the original document's presentation needs to be preserved; use this markdown/PDF version for the fuller continuous technical writeup.
+> **The shareable, presentation-ready white paper is `docs/AFFI_White_Paper.pdf`** — a clean, professionally-designed document with seven original diagrams, written to read as a single current document for a first-time reader (no revision history, no change-tracking). This markdown file is the fuller internal technical record, including the honest engineering changelog below; the polished PDF is what goes to external reviewers.
 
 **Prepared by:** Solman Raju Sarva, MSc — AI & Hydrology Researcher and William D. O'Brien, PE, CFM — Principal Engineer, NextGen Engineering Inc.
 
