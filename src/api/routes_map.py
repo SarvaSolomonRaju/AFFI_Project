@@ -61,6 +61,10 @@ _RASTER_LAYERS: dict[str, Path] = {
     # scripts/17_build_population_layer.py — real gridded population counts,
     # free/no-key source (data.worldpop.org).
     "population": OUTPUTS_DIR / "_map_layer_population.png",
+    # Inundation-frequency ("how often does this flood") — smallest return
+    # period at which each pixel floods, colored by annual chance. Static,
+    # built by scripts/19_build_recurrence_layer.py from the flood library.
+    "recurrence": OUTPUTS_DIR / "_map_layer_recurrence.png",
 }
 
 _TASK4_IMAGES: dict[str, Path] = {
@@ -147,7 +151,7 @@ async def get_map_layer(
     today_status_path = OUTPUTS_DIR / "task4" / "today_feature_status.json"
     apply_today_status = (
         return_period is None
-        and layer in ("roads", "buildings", "infrastructure")
+        and layer in ("roads", "buildings", "infrastructure", "evac-routes")
         and today_status_path.exists()
     )
 

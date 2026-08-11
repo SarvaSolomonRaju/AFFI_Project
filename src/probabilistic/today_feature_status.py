@@ -59,6 +59,11 @@ _TARGETS = {
     "roads": ("roads_huc12.geojson", "OPEN"),
     "buildings": ("buildings_huc12.geojson", "OPEN"),
     "infrastructure": ("infrastructure.geojson", "SAFE"),
+    # Evac routes are lines like roads and sampled identically, so tagging
+    # them here lets the map show which escape routes today's flood cuts off
+    # ("CLEAR" when the route stays dry). The key is hyphenated to match the
+    # servable map-layer name in routes_map._GEOJSON_LAYERS.
+    "evac-routes": ("evac_routes.geojson", "CLEAR"),
 }
 
 

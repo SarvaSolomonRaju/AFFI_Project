@@ -31,7 +31,7 @@ class TestMapConfig:
         assert data["available_layers"] == [
             "nfhl-zones", "bfe-lines", "creek-centerline", "roads", "buildings", "infrastructure", "evac-routes",
         ]
-        assert data["available_rasters"] == ["fema-100yr", "today-likely", "today-poi", "population"]
+        assert data["available_rasters"] == ["fema-100yr", "today-likely", "today-poi", "population", "recurrence"]
 
     def test_has_raster_bounds_for_frontend_overlay_placement(self):
         data = client.get("/api/v1/map/config").json()

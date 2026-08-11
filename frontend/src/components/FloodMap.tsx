@@ -171,6 +171,19 @@ const roadSeverityWidth: ExpressionSpecification = [
   ["match", ["get", "status"], "FLOODED", 3, 1.5],
 ];
 
+// Evac routes read as "can I still use this escape route today?" — CLEAR is
+// green (usable), threatened is amber, CUT is red. A dry route with no
+// severity tag yet stays the neutral gold "this is the route" color.
+const EVAC_CLEAR = "#2f8f4e";
+const evacRouteColor: ExpressionSpecification = [
+  "match", ["get", "severity"],
+  "severe", "#c0392b",     // CUT — impassable
+  "moderate", "#e67e22",   // CUT — floats a car
+  "minor", "#f4c542",      // threatened — passable with care
+  "none", EVAC_CLEAR,      // clear
+  "#ffd600",               // untagged fallback: neutral route gold
+];
+
 // Every return period the flood library actually has a pre-computed
 // depth raster + per-feature depth_by_rp for (scripts/16_tag_return_periods.py,
 // src/probabilistic/scenarios.py DEFAULT_RETURN_PERIODS) — the map's own
@@ -365,6 +378,11 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
   // water), refreshed every forecast cycle now (see map_overlay.py). Off by
   // default so it doesn't visually compete with the main depth overlay.
   const [showPoiLayer, setShowPoiLayer] = useState(false);
+  // Inundation-frequency ("how often does this flood") — the analog of Google
+  // Flood Hub's "Inundation History" layer, built from the return-period
+  // library (scripts/19_build_recurrence_layer.py): deep = floods often
+  // (~2-yr), pale = floods rarely (~500-yr). Static reference, off by default.
+  const [showRecurrence, setShowRecurrence] = useState(false);
 
   // Elevation tool — click anywhere (not just a building) to query the real
   // USGS 3DEP DEM at that exact point, plus flood depth for whatever return
@@ -555,7 +573,8 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
         name: p.name ?? "Evacuation route",
         category: p.route_type ? `${p.route_type} route -> ${p.destination ?? "?"}` : "Evacuation route",
         status: p.status ?? "UNKNOWN",
-        maxDepthM: 0,
+        maxDepthM: typeof p.max_depth_m === "number" ? p.max_depth_m : parseFloat(p.max_depth_m) || 0,
+        severity: p.severity,
         note: p.note,
       });
       return;
@@ -855,6 +874,23 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
           </Source>
         )}
 
+        {/* Inundation frequency — "how often does this flood." Deep red =
+            floods often (2-yr), pale = floods only in a rare (500-yr) event.
+            Static, library-derived (scripts/19_build_recurrence_layer.py). */}
+        {showRecurrence && config.raster_bounds["recurrence"] && (
+          <Source
+            id="recurrence-raster"
+            type="image"
+            url={apiRasterUrl("/api/v1/map/raster/recurrence")}
+            coordinates={(() => {
+              const pb = config.raster_bounds["recurrence"];
+              return [[pb.west, pb.north], [pb.east, pb.north], [pb.east, pb.south], [pb.west, pb.south]];
+            })()}
+          >
+            <Layer id="recurrence-layer" type="raster" paint={{ "raster-opacity": 0.7 }} />
+          </Source>
+        )}
+
         {/* Drainage network — FEMA FIS creek/wash centerlines
             (data/fema_fis/WaterLn_huc12.geojson). This is the channel the
             flood library's depth grids are actually built around; showing
@@ -894,7 +930,7 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
             <Layer
               id="evac-routes-line"
               type="line"
-              paint={{ "line-color": "#ffd600", "line-width": 4, "line-opacity": 0.9, "line-dasharray": [2, 1.5] }}
+              paint={{ "line-color": evacRouteColor, "line-width": 5, "line-opacity": 0.92, "line-dasharray": [2, 1.5] }}
               layout={{ "line-cap": "round" }}
             />
           </Source>
@@ -1103,13 +1139,31 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
               {popup.kind === "evac-route" ? (
                 <>
                   {popup.note && <div style={{ color: "#333", fontSize: "0.78rem", marginBottom: 4 }}>{popup.note}</div>}
-                  <div style={{
-                    display: "inline-block", padding: "2px 8px", borderRadius: 4,
-                    fontWeight: 700, fontSize: "0.75rem",
-                    background: "#8b6d00", color: "white",
-                  }}>
-                    STATUS: {popup.status}
-                  </div>
+                  {(() => {
+                    // Cut-off verdict against today's forecast: severe/moderate
+                    // depth = route is CUT, minor = passable with care, else CLEAR.
+                    const sev = popup.severity ?? "none";
+                    const cut = sev === "severe" || sev === "moderate";
+                    const threatened = sev === "minor";
+                    const bg = cut ? "#c0392b" : threatened ? "#e67e22" : EVAC_CLEAR;
+                    const label = cut ? "CUT — do not use this route" : threatened ? "PASSABLE — use caution" : "CLEAR — usable now";
+                    return (
+                      <>
+                        <div style={{ display: "inline-block", padding: "3px 9px", borderRadius: 4, fontWeight: 700, fontSize: "0.75rem", background: bg, color: "white" }}>
+                          {label}
+                        </div>
+                        {cut || threatened ? (
+                          <div style={{ color: "#333", fontSize: "0.75rem", marginTop: 4 }}>
+                            Water across route ~{fmtFeet(popup.maxDepthM, 2)} — find an alternate.
+                          </div>
+                        ) : (
+                          <div style={{ color: "#555", fontSize: "0.72rem", marginTop: 4 }}>
+                            No flood water on this route in today's forecast.
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </>
               ) : (
                 <>
@@ -1328,6 +1382,7 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
               { key: "history", label: "Historical events", checked: showHistorical, set: setShowHistorical, swatch: "#8e44ad" },
               { key: "population", label: "Population density", checked: showPopulation, set: setShowPopulation, swatch: "#e67e22" },
               { key: "poi", label: "Flood probability heatmap (chance of any water)", checked: showPoiLayer, set: setShowPoiLayer, swatch: "#d94801" },
+              { key: "recurrence", label: "How often it floods (deep = often, pale = rare)", checked: showRecurrence, set: setShowRecurrence, swatch: "#e31a1c" },
             ].map(({ key, label, checked, set, swatch }) => (
               <label key={key} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "0.72rem", color: "white", cursor: "pointer" }}>
                 <input type="checkbox" checked={checked} onChange={(e) => set(e.target.checked)} style={{ accentColor: swatch, cursor: "pointer" }} />
@@ -1400,6 +1455,41 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
             </div>
             <div style={{ fontSize: "0.62rem", opacity: 0.75, marginBottom: 8 }}>
               Model-estimated chance of any water today, not a certainty.
+            </div>
+          </>
+        )}
+
+        {showRecurrence && (
+          <>
+            <div style={{ fontWeight: 700, marginBottom: 4, letterSpacing: "0.05em", color: "#aab4c0" }}>
+              HOW OFTEN IT FLOODS
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+              <span style={{
+                width: 84, height: 10, borderRadius: 2, display: "inline-block",
+                background: "linear-gradient(90deg, #ffffb2, #fd8d3c, #bd0026)",
+              }} />
+              <span style={{ fontSize: "0.66rem" }}>rarely → often</span>
+            </div>
+            <div style={{ fontSize: "0.62rem", opacity: 0.75, marginBottom: 8 }}>
+              Deep = floods in a common (2-yr) storm; pale = only in a rare (500-yr) one.
+            </div>
+          </>
+        )}
+
+        {showEvacRoutes && (
+          <>
+            <div style={{ fontWeight: 700, marginBottom: 4, letterSpacing: "0.05em", color: "#aab4c0" }}>
+              EVACUATION ROUTES
+            </div>
+            {([["#2f8f4e", "Clear — usable now"], ["#f4c542", "Passable — use caution"], ["#c0392b", "Cut off — do not use"]] as const).map(([c, t]) => (
+              <div key={t} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                <span style={{ width: 14, height: 3, background: c, display: "inline-block", borderRadius: 2 }} />
+                <span style={{ fontSize: "0.66rem" }}>{t}</span>
+              </div>
+            ))}
+            <div style={{ fontSize: "0.62rem", opacity: 0.75, marginTop: 2, marginBottom: 8 }}>
+              Colored against today's forecast — click a route for detail.
             </div>
           </>
         )}
