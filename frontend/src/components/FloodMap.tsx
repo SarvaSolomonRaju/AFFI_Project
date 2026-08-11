@@ -6,6 +6,7 @@ import { apiGet, apiRasterUrl } from "../api/client";
 import type { MapConfig, HistoricalEventsCatalog, SimState, ElevationResult } from "../types/api";
 import { cmsToCfs, fmtFeet } from "../utils/units";
 import { gammaHydro } from "../utils/simulation";
+import { GaugeStatusMarker } from "./GaugeStatusMarker";
 
 // A map library is different from a normal component: it draws
 // straight onto a <canvas>, not into regular HTML, so React can't
@@ -765,6 +766,20 @@ export function FloodMap({ overlayUrl, isSimulation, activeRP, onSelectReturnPer
             <div title={m.label} style={{ fontSize: 20 }}>📍</div>
           </Marker>
         ))}
+
+        {/* Live river-gauge status pin — the Google-Flood-Hub-style
+            Normal/Warning/Danger/Extreme marker at the pilot gauge. Only in
+            true live mode; while exploring a what-if scenario the "today's
+            forecast" flow it reads wouldn't match the scenario on screen. */}
+        {!isSimulation && !isExploring && (
+          <GaugeStatusMarker
+            longitude={config.reference_markers[0]?.lon ?? -110.7521}
+            latitude={config.reference_markers[0]?.lat ?? 31.5407}
+            gaugeId="09481500"
+            gaugeName="Sonoita Creek near Patagonia, AZ"
+            refreshSignal={refreshSignal}
+          />
+        )}
 
         {/* NFHL zone fill goes UNDERNEATH the scenario raster (layers painted
             in source order — later = on top). Static reference zone first;
